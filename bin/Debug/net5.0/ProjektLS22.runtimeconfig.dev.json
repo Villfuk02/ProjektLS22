@@ -1,0 +1,8 @@
+{
+  "runtimeOptions": {
+    "additionalProbingPaths": [
+      "C:\\Users\\Vilda\\.dotnet\\store\\|arch|\\|tfm|",
+      "C:\\Users\\Vilda\\.nuget\\packages"
+    ]
+  }
+}
