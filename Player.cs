@@ -4,14 +4,14 @@ namespace ProjektLS22
 {
     public class Player
     {
-        World w;
-        public ConsoleColor color;
+        ConsoleColor color;
+        PlayerController controller;
         public int energy = 50;
 
-        public Player(World w, ConsoleColor color)
+        public Player(ConsoleColor color, PlayerController controller)
         {
-            this.w = w;
             this.color = color;
+            this.controller = controller;
         }
     }
 }

@@ -10,9 +10,11 @@ namespace ProjektLS22
         public Tile[,] tiles;
         public Player[] players;
 
-        public World(int size, ConsoleColor[] playerColors)
+        public World(int size, Player[] players)
         {
             this.size = size;
+            this.players = players;
+
             tiles = new Tile[size + 2, size + 2];
             for (int x = 0; x < size + 2; x++)
             {
@@ -20,11 +22,6 @@ namespace ProjektLS22
                 {
                     tiles[x, y] = new Tile(this, new Pos(x, y), x == 0 || x > size || y == 0 || y > size);
                 }
-            }
-            players = new Player[playerColors.Length];
-            for (int i = 0; i < playerColors.Length; i++)
-            {
-                players[i] = new Player(this, playerColors[i]);
             }
         }
     }
