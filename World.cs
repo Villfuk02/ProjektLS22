@@ -1,3 +1,5 @@
+using System;
+
 namespace ProjektLS22
 {
 
@@ -6,8 +8,9 @@ namespace ProjektLS22
         public int size;
 
         public Tile[,] tiles;
+        public Player[] players;
 
-        public World(int size)
+        public World(int size, ConsoleColor[] playerColors)
         {
             this.size = size;
             tiles = new Tile[size + 2, size + 2];
@@ -18,20 +21,11 @@ namespace ProjektLS22
                     tiles[x, y] = new Tile(this, new Pos(x, y), x == 0 || x > size || y == 0 || y > size);
                 }
             }
+            players = new Player[playerColors.Length];
+            for (int i = 0; i < playerColors.Length; i++)
+            {
+                players[i] = new Player(this, playerColors[i]);
+            }
         }
-    }
-    public struct Pos
-    {
-        public int x;
-        public int y;
-        public Pos(int x, int y)
-        {
-            this.x = x;
-            this.y = y;
-        }
-        public static Pos UP = new Pos(0, -1);
-        public static Pos DOWN = new Pos(0, 1);
-        public static Pos LEFT = new Pos(-1, 0);
-        public static Pos RIGHT = new Pos(1, 0);
     }
 }
