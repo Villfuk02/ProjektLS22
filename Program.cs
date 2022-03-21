@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace ProjektLS22
 {
@@ -17,6 +16,5 @@ namespace ProjektLS22
         {
             w = new GameSetup().InitWorld();
         }
-
     }
 }

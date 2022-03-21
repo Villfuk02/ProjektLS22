@@ -1,15 +1,24 @@
+using System;
+using System.Collections.Generic;
+
 namespace ProjektLS22
 {
     public class PlayerController
     {
-        public enum Type { Human };
-        public static PlayerController GetNew(Type type)
+        public static List<Type> TYPES = new List<Type>();
+        public struct Type
         {
-            switch (type)
+            public string label;
+            public Func<PlayerController> GetNew;
+            public int id;
+            public Type(string label, Func<PlayerController> GetNew)
             {
-                case Type.Human: return new HumanPlayerController();
-                default: return new HumanPlayerController();
+                this.label = label;
+                this.GetNew = GetNew;
+                this.id = TYPES.Count;
+                TYPES.Add(this);
             }
         }
+        public static readonly Type HUMAN = new Type("Human", () => new HumanPlayerController());
     }
 }

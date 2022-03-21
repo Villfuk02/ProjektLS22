@@ -4,7 +4,6 @@ it does stuff
 
 ## TODO
 
-- game setup
 - main loop
 - buildings
 - placement
@@ -16,3 +15,4 @@ it does stuff
 - add more stuff
 - BALANCE
 - AIs
+- getters and setters
