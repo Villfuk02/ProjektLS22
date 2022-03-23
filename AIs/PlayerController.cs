@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace ProjektLS22
 {
-    public class PlayerController
+    public abstract class PlayerController
     {
         public static List<Type> TYPES = new List<Type>();
         public struct Type
@@ -20,5 +20,7 @@ namespace ProjektLS22
             }
         }
         public static readonly Type HUMAN = new Type("Human", () => new HumanPlayerController());
+
+        public abstract Player.Action GetIntent(World w);
     }
 }

@@ -24,5 +24,22 @@ namespace ProjektLS22
                 }
             }
         }
+
+        public void TakeTurn(int activePlayer)
+        {
+            Renderer.PRINT.R().H().P("DO SOMETHING").R().W().NL();
+            while (true)
+            {
+                string error = TryAction(players[activePlayer].GetIntent(this));
+                if (error == "")
+                    break;
+                Renderer.PRINT.CL(2).R().F(ConsoleColor.Red).P(error).R().W().NL();
+            }
+        }
+
+        public string TryAction(Player.Action a)
+        {
+            return "ERRRRRRR";
+        }
     }
 }

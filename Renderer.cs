@@ -7,6 +7,7 @@ namespace ProjektLS22
         public static Print PRINT = new Print();
         public static void RenderState(World w)
         {
+            Console.Clear();
             Console.Write("   ");
             for (int x = 0; x < w.size + 2; x++)
             {
@@ -52,11 +53,6 @@ namespace ProjektLS22
             {
                 Console.Write((pos + e) / d % 10);
             }
-        }
-
-        public static void PrintFormattedBkg(string str, ConsoleColor backgroundColor)
-        {
-
         }
 
         public class Print
@@ -159,6 +155,15 @@ namespace ProjektLS22
             public Print H(string s)
             {
                 return H().P(s[0]).H().P(s.Substring(1));
+            }
+            //CLEAR LINE
+            public Print CL(int lines)
+            {
+                int currentLineCursor = Console.CursorTop;
+                Console.SetCursorPosition(0, Console.CursorTop - lines + 1);
+                S(Console.WindowWidth - 1);
+                Console.SetCursorPosition(0, currentLineCursor - lines + 1);
+                return this;
             }
         }
     }

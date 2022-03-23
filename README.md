@@ -4,7 +4,6 @@ it does stuff
 
 ## TODO
 
-- main loop
 - buildings
 - placement
 - shop
@@ -16,3 +15,9 @@ it does stuff
 - BALANCE
 - AIs
 - getters and setters
+
+## player input
+
+- key to buy
+- coords + arrows for pos
+- highlight selected tile

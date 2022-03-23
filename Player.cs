@@ -13,5 +13,21 @@ namespace ProjektLS22
             this.color = color;
             this.controller = controller;
         }
+
+        public Action GetIntent(World w)
+        {
+            return controller.GetIntent(w);
+        }
+
+        public struct Action
+        {
+            char item;
+            Pos pos;
+            public Action(char item, Pos pos)
+            {
+                this.item = item;
+                this.pos = pos;
+            }
+        }
     }
 }
