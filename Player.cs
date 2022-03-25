@@ -4,7 +4,7 @@ namespace ProjektLS22
 {
     public class Player
     {
-        ConsoleColor color;
+        public ConsoleColor color;
         PlayerController controller;
         public int energy = 50;
 

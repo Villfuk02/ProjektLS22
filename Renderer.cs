@@ -29,8 +29,18 @@ namespace ProjektLS22
 
                 for (int x = 0; x < w.size + 2; x++)
                 {
-                    Console.BackgroundColor = w.tiles[x, y].color;
-                    Console.Write((x % 5 == 0 || y % 5 == 0) ? "." : " ");
+                    Tile t = w.tiles[x, y];
+                    Console.BackgroundColor = t.color;
+                    if (t.b == null)
+                    {
+                        Console.ForegroundColor = ConsoleColor.Gray;
+                        Console.Write((x % 5 == 0 || y % 5 == 0) ? "." : " ");
+                    }
+                    else
+                    {
+                        Console.ForegroundColor = ConsoleColor.White;
+                        Console.Write(t.b.symbol);
+                    }
                 }
                 Console.BackgroundColor = ConsoleColor.Black;
                 Console.Write("\n");

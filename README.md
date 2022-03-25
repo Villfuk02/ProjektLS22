@@ -7,14 +7,16 @@ it does stuff
 - buildings
 - placement
 - shop
+- redo renderer and display shop
 - fight
-- fix numbers
 - end conditions
 - REFACTOR
 - add more stuff
 - BALANCE
 - AIs
 - getters and setters
+- documentation
+- documentation
 
 ## player input
 
