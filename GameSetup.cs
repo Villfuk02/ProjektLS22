@@ -27,7 +27,7 @@ namespace ProjektLS22
             }
         }
 
-        enum State { Menu, World, Player, Finished };
+        enum State { Menu, World, Player, Rules, Finished };
         State state = State.Menu;
         int selectedPlayer = -1;
         bool changedWorldSize = false;
@@ -55,19 +55,26 @@ namespace ProjektLS22
 
         void PrintInfo()
         {
-            Renderer.PRINT.C().R().G().P("Current game settings:").NL();
-            Renderer.PRINT.P("World size: ").W().P(worldSize, 2).S(5).G().P("Players: ").W().P(players.Count, 1).NL();
-            for (int i = 0; i < players.Count; i++)
+            if (state == State.Rules)
             {
-                if (selectedPlayer == i)
-                    Renderer.PRINT.W().P(">").B(players[i].color).P("Player ").P(i + 1, 1).B().P("< ");
-                else
-                    Renderer.PRINT.G().P(" ").B(players[i].color).P("Player ").P(i + 1, 1).B().P("  ");
+                Renderer.PRINT.C().R().G().P("THIS IS DA RULES");
             }
-            Renderer.PRINT.NL();
-            for (int i = 0; i < players.Count; i++)
+            else
             {
-                Renderer.PRINT.G().P(" ").B(players[i].color).P(players[i].type.label, 8, true).B().P("  ");
+                Renderer.PRINT.C().R().G().P("Current game settings:").NL();
+                Renderer.PRINT.P("World size: ").W().P(worldSize, 2).S(5).G().P("Players: ").W().P(players.Count, 1).NL();
+                for (int i = 0; i < players.Count; i++)
+                {
+                    if (selectedPlayer == i)
+                        Renderer.PRINT.W().P(">").B(players[i].color).P("Player ").P(i + 1, 1).B().P("< ");
+                    else
+                        Renderer.PRINT.G().P(" ").B(players[i].color).P("Player ").P(i + 1, 1).B().P("  ");
+                }
+                Renderer.PRINT.NL();
+                for (int i = 0; i < players.Count; i++)
+                {
+                    Renderer.PRINT.G().P(" ").B(players[i].color).P(players[i].type.label, 8, true).B().P("  ");
+                }
             }
             Renderer.PRINT.NL().NL();
             switch (state)
@@ -75,7 +82,7 @@ namespace ProjektLS22
                 case State.Menu:
                     Renderer.PRINT.G().P("| ").H("Start | ").H("World size | Edit player ").H("1 to ").H(players.Count.ToString()).P(" |");
                     if (players.Count < PLAYER_AMOUNT_MAX)
-                        Renderer.PRINT.P(" ").H("Add player |");
+                        Renderer.PRINT.P(" ").H("Add player | ").H("Rules |");
                     break;
                 case State.World:
                     Renderer.PRINT.G().P("| ").H("Start | ").H("Finish editing world |").H("Decrease size | ").H("Grow size | ").H("Recommended size (").P(RecommendedSize(), 2).P(") |");
@@ -88,6 +95,9 @@ namespace ProjektLS22
                             Renderer.PRINT.B(COLORS[i]).P(COLOR_CODES[i]).S(1);
                     }
                     Renderer.PRINT.R().G().P(" | Change ").H("AI | ").H("Delete player |");
+                    break;
+                case State.Rules:
+                    Renderer.PRINT.G().P("| ").H("Start | ").H("Back |");
                     break;
             }
             Renderer.PRINT.NL();
@@ -109,6 +119,9 @@ namespace ProjektLS22
                         case ConsoleKey.A:
                             if (players.Count < PLAYER_AMOUNT_MAX)
                                 AddPlayer();
+                            break;
+                        case ConsoleKey.R:
+                            state = State.Rules;
                             break;
                         default:
                             char c = k.KeyChar;
@@ -173,6 +186,17 @@ namespace ProjektLS22
                                 if (COLORS[i] != players[selectedPlayer].color && c == COLOR_CODES[i])
                                     ChangeColor(i);
                             }
+                            break;
+                    }
+                    break;
+                case State.Rules:
+                    switch (k.Key)
+                    {
+                        case ConsoleKey.S:
+                            state = State.Finished;
+                            break;
+                        case ConsoleKey.B:
+                            state = State.Menu;
                             break;
                     }
                     break;

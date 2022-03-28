@@ -26,8 +26,8 @@ namespace ProjektLS22
             }
 
             double center = (size + 1) * 0.5;
-            double offset = size * 0.25;
-            double variance = size * 0.125;
+            double offset = size * 0.4;
+            double variance = size * 0;
             double angle = rand.NextDouble() * 2 * Math.PI;
             for (int i = 0; i < players.Length; i++)
             {
