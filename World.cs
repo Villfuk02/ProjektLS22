@@ -8,7 +8,7 @@ namespace ProjektLS22
         static Random rand = new Random();
         public int size;
 
-        public Tile[,] tiles;
+        Tile[,] tiles;
         public Player[] players;
 
         public World(int size, Player[] players)
@@ -37,6 +37,7 @@ namespace ProjektLS22
                 Pos pos = new Pos((int)Math.Round(center + x + ox), (int)Math.Round(center + y + oy));
                 tiles[pos.x, pos.y].color = players[i].color;
                 tiles[pos.x, pos.y].Place(players[i], this, new Base(players[i]));
+                players[i].basePos = pos;
             }
         }
 
@@ -55,6 +56,20 @@ namespace ProjektLS22
         public string TryAction(Player.Action a)
         {
             return "ERRRRRRR";
+        }
+
+        public Tile GetTile(Pos p)
+        {
+            return tiles[p.x, p.y];
+        }
+        public Tile[] GetNeighbors(Tile t)
+        {
+            Tile[] ret = new Tile[Pos.NEIGHBORS.Length];
+            for (int i = 0; i < Pos.NEIGHBORS.Length; i++)
+            {
+                ret[i] = GetTile(t.p + Pos.NEIGHBORS[i]);
+            }
+            return ret;
         }
     }
 }

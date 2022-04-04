@@ -23,3 +23,12 @@ it does stuff
 - key to buy
 - coords + arrows for pos
 - highlight selected tile
+
+## buildings
+
+- $    money
+- -/|\ double shot
+- o    simple area collector
+- \#    wall
+- \+    cross collector
+- \*    bomb

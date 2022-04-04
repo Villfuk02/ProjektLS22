@@ -5,7 +5,7 @@ namespace ProjektLS22
     public class Tile
     {
         World w;
-        Pos p;
+        public Pos p;
         bool blocker;
         public ConsoleColor color;
         public Building b;

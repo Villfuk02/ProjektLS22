@@ -6,7 +6,8 @@ namespace ProjektLS22
     {
         public ConsoleColor color;
         PlayerController controller;
-        public int energy = 50;
+        public int cash = 50;
+        public Pos basePos;
 
         public Player(ConsoleColor color, PlayerController controller)
         {
@@ -16,7 +17,7 @@ namespace ProjektLS22
 
         public Action GetIntent(World w)
         {
-            return controller.GetIntent(w);
+            return controller.GetIntent(w, this);
         }
 
         public struct Action

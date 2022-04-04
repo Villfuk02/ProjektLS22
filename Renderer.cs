@@ -5,6 +5,7 @@ namespace ProjektLS22
     public class Renderer
     {
         public static Print PRINT = new Print();
+        static readonly Pos mapOffset = new Pos(3, 1);
         public static void RenderState(World w)
         {
             Console.Clear();
@@ -29,18 +30,7 @@ namespace ProjektLS22
 
                 for (int x = 0; x < w.size + 2; x++)
                 {
-                    Tile t = w.tiles[x, y];
-                    Console.BackgroundColor = t.color;
-                    if (t.b == null)
-                    {
-                        Console.ForegroundColor = ConsoleColor.Gray;
-                        Console.Write((x % 5 == 0 || y % 5 == 0) ? "." : " ");
-                    }
-                    else
-                    {
-                        Console.ForegroundColor = ConsoleColor.White;
-                        Console.Write(t.b.symbol);
-                    }
+                    PrintTile(w, new Pos(x, y), false);
                 }
                 Console.BackgroundColor = ConsoleColor.Black;
                 Console.Write("\n");
@@ -63,6 +53,46 @@ namespace ProjektLS22
             {
                 Console.Write((pos + e) / d % 10);
             }
+        }
+
+        static void PrintTile(World w, Pos pos, bool selected)
+        {
+            if (selected)
+            {
+                Console.Write("#");
+            }
+            else
+            {
+                Tile t = w.GetTile(pos);
+                Console.BackgroundColor = t.color;
+                if (t.b == null)
+                {
+                    Console.ForegroundColor = ConsoleColor.Gray;
+                    Console.Write((pos.x % 5 == 0 || pos.y % 5 == 0) ? "." : " ");
+                }
+                else
+                {
+                    Console.ForegroundColor = ConsoleColor.White;
+                    Console.Write(t.b.symbol);
+                }
+            }
+        }
+
+        public static void UnpaintCursor(World w, Pos p)
+        {
+            Pos c = new Pos(Console.CursorLeft, Console.CursorTop);
+            Pos cursor = p + mapOffset;
+            Console.SetCursorPosition(cursor.x, cursor.y);
+            PrintTile(w, p, false);
+            Console.SetCursorPosition(c.x, c.y);
+        }
+        public static void PaintCursor(World w, Pos p)
+        {
+            Pos c = new Pos(Console.CursorLeft, Console.CursorTop);
+            Pos cursor = p + mapOffset;
+            Console.SetCursorPosition(cursor.x, cursor.y);
+            PrintTile(w, p, true);
+            Console.SetCursorPosition(c.x, c.y);
         }
 
         public class Print
