@@ -4,9 +4,10 @@ it does stuff
 
 ## TODO
 
-- buildings
+- rethink structure
 - placement
 - shop
+- display placeability
 - redo renderer and display shop
 - fight
 - end conditions

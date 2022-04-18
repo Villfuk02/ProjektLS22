@@ -36,6 +36,10 @@ namespace ProjektLS22
                 (double ox, double oy) = Utils.GetRandomPointInsideCircle(variance);
                 Pos pos = new Pos((int)Math.Round(center + x + ox), (int)Math.Round(center + y + oy));
                 tiles[pos.x, pos.y].color = players[i].color;
+                foreach (Pos p in Pos.NEIGHBORS)
+                {
+                    tiles[pos.x + p.x, pos.y + p.y].color = players[i].color;
+                }
                 tiles[pos.x, pos.y].Place(players[i], this, new Base(players[i]));
                 players[i].basePos = pos;
             }

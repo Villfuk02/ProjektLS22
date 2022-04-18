@@ -57,13 +57,22 @@ namespace ProjektLS22
 
         static void PrintTile(World w, Pos pos, bool selected)
         {
+            Tile t = w.GetTile(pos);
             if (selected)
             {
-                Console.Write("#");
+                Console.BackgroundColor = ConsoleColor.White;
+                Console.ForegroundColor = t.color;
+                if (t.b == null)
+                {
+                    Console.Write((pos.x % 5 == 0 || pos.y % 5 == 0) ? "." : " ");
+                }
+                else
+                {
+                    Console.Write(t.b.symbol);
+                }
             }
             else
             {
-                Tile t = w.GetTile(pos);
                 Console.BackgroundColor = t.color;
                 if (t.b == null)
                 {

@@ -40,8 +40,7 @@ namespace ProjektLS22
                         break;
                 }
                 cursorPosition.LimitToWorld(w.size);
-                //Renderer.RenderState(w, cursorPosition);
-                Renderer.PRINT.CL(1).P($"{cursorPosition.x} {cursorPosition.y}");
+                Renderer.PRINT.R().CL(1).P($"{cursorPosition.x} {cursorPosition.y}");
                 Renderer.PaintCursor(w, cursorPosition);
             }
             Console.ReadLine();
