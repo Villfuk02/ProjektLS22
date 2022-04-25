@@ -19,8 +19,7 @@ namespace ProjektLS22
                 TYPES.Add(this);
             }
         }
-        public static readonly Type HUMAN = new Type("Human", () => new HumanPlayerController());
+        public static readonly Type HUMAN = new Type(" Člověk", () => new HumanPlayerController());
 
-        public abstract Player.Action GetIntent(World w, Player p);
     }
 }

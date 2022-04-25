@@ -4,33 +4,25 @@ namespace ProjektLS22
 {
     class Program
     {
-        static World w;
+        static Game g;
         static int turn = 1;
         static int activePlayer = 0;
         static void Main(string[] args)
         {
-            Init();
             while (true)
             {
-                Renderer.RenderState(w);
-                TakeTurn();
-                activePlayer++;
-                if (activePlayer >= w.players.Length)
+                Init();
+                while (g.active)
                 {
-                    activePlayer = 0;
-                    turn++;
+                    Renderer.RenderState(g);
+                    g.NextStep();
                 }
             }
         }
 
         static void Init()
         {
-            w = new GameSetup().InitWorld();
-        }
-
-        static void TakeTurn()
-        {
-            w.TakeTurn(activePlayer);
+            g = new GameSetup().NewGame();
         }
     }
 }

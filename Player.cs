@@ -4,31 +4,16 @@ namespace ProjektLS22
 {
     public class Player
     {
-        public ConsoleColor color;
+        public int index;
         PlayerController controller;
         public int cash = 50;
-        public Pos basePos;
 
-        public Player(ConsoleColor color, PlayerController controller)
+        public Player(int index, PlayerController controller)
         {
-            this.color = color;
+            this.index = index;
             this.controller = controller;
         }
 
-        public Action GetIntent(World w)
-        {
-            return controller.GetIntent(w, this);
-        }
 
-        public struct Action
-        {
-            char item;
-            Pos pos;
-            public Action(char item, Pos pos)
-            {
-                this.item = item;
-                this.pos = pos;
-            }
-        }
     }
 }
