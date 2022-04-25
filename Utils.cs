@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Threading;
 
 namespace ProjektLS22
 {
@@ -6,16 +8,27 @@ namespace ProjektLS22
     {
 
         static Random rand = new Random();
-        public static (double x, double y) GetRandomPointInsideCircle(double radius)
+        public static void Shuffle(this List<Card> cards)
         {
-            radius *= Math.Max(rand.NextDouble(), rand.NextDouble());
-            double angle = Math.PI * 2 * rand.NextDouble();
-            return OnCircle(radius, angle);
+            int n = cards.Count;
+            while (n > 1)
+            {
+                n--;
+                int k = rand.Next(n + 1);
+                Card c = cards[k];
+                cards[k] = cards[n];
+                cards[n] = c;
+            }
         }
 
-        public static (double x, double y) OnCircle(double radius, double angle)
+        public static void Wait(int time)
         {
-            return (radius * Math.Cos(angle), radius * Math.Sin(angle));
+            Thread thread = new Thread(delegate ()
+            {
+                Thread.Sleep(time);
+            });
+            thread.Start();
+            while (thread.IsAlive) ;
         }
     }
 }

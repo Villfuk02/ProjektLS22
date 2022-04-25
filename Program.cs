@@ -5,8 +5,6 @@ namespace ProjektLS22
     class Program
     {
         static Game g;
-        static int turn = 1;
-        static int activePlayer = 0;
         static void Main(string[] args)
         {
             while (true)

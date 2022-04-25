@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace ProjektLS22
 {
@@ -7,6 +8,8 @@ namespace ProjektLS22
         public int index;
         PlayerController controller;
         public int cash = 50;
+        public List<Card> hand = new List<Card>();
+        public List<Card> discard = new List<Card>();
 
         public Player(int index, PlayerController controller)
         {

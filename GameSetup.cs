@@ -9,6 +9,8 @@ namespace ProjektLS22
         PlayerController.Type[] players = new PlayerController.Type[PLAYER_AMT];
         enum State { Menu, Rules, Finished };
         State state = State.Menu;
+        public static readonly int[] CASH_OPTIONS = new int[] { 20, 50, 100, 200, 500, 1000 };
+        public int cash_selected = 2;
 
         public GameSetup()
         {
@@ -27,11 +29,11 @@ namespace ProjektLS22
         {
             if (state == State.Rules)
             {
-                Renderer.PRINT.C().R().G().P("Tohle jsou pravidla.");
+                Renderer.PRINT.CLR().R().G().P("Tohle jsou pravidla.");
             }
             else
             {
-                Renderer.PRINT.C().R().G().P("Momentální nastavení:").NL();
+                Renderer.PRINT.CLR().R().G().P("Nastavení hry:").NL().NL();
                 for (int i = 0; i < PLAYER_AMT; i++)
                 {
                     Renderer.PRINT.W().P(" ").B(ConsoleColor.Blue).P(" Hráč ").P(i + 1, 1).P(" ").B().P("  ");
@@ -99,7 +101,7 @@ namespace ProjektLS22
 
         public Game NewGame()
         {
-            return new Game();
+            return new Game(players);
         }
     }
 }

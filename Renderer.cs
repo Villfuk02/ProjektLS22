@@ -7,7 +7,11 @@ namespace ProjektLS22
         public static Print PRINT = new Print();
         public static void RenderState(Game g)
         {
-            Console.Clear();
+            PRINT.CLR();
+            foreach (Card c in g.deck)
+            {
+                PRINT.C(c);
+            }
         }
 
         public class Print
@@ -70,7 +74,7 @@ namespace ProjektLS22
                 return this;
             }
             //CLEAR
-            public Print C()
+            public Print CLR()
             {
                 Console.Clear();
                 return this;
@@ -118,6 +122,27 @@ namespace ProjektLS22
                 Console.SetCursorPosition(0, Console.CursorTop - lines + 1);
                 S(Console.WindowWidth - 1);
                 Console.SetCursorPosition(0, currentLineCursor - lines + 1);
+                return this;
+            }
+            //PRINT CARD
+            public Print C(Card card)
+            {
+                ConsoleColor f = Console.ForegroundColor;
+                ConsoleColor b = Console.BackgroundColor;
+                Console.BackgroundColor = card.suit.color;
+                Console.ForegroundColor = ConsoleColor.Black;
+                P(card.value.symbol);
+                Console.BackgroundColor = b;
+                Console.ForegroundColor = f;
+                return this;
+            }
+            //PRINT CARD BACKS
+            public Print CB(int count = 1)
+            {
+                ConsoleColor b = Console.BackgroundColor;
+                Console.BackgroundColor = ConsoleColor.Blue;
+                S(count);
+                Console.BackgroundColor = b;
                 return this;
             }
         }
