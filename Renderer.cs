@@ -5,12 +5,17 @@ namespace ProjektLS22
     public class Renderer
     {
         public static Print PRINT = new Print();
-        public static void RenderState(Game g)
+        public static void RenderState(Game g, string status)
         {
             PRINT.CLR();
-            foreach (Card c in g.deck)
+            PRINT.P(status).NL();
+            switch (g.phase)
             {
-                PRINT.C(c);
+                case Game.Phase.CUT:
+                    {
+                        PRINT.CB(32).NL();
+                        break;
+                    }
             }
         }
 

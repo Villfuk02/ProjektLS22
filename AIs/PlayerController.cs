@@ -11,15 +11,17 @@ namespace ProjektLS22
             public string label;
             public Func<PlayerController> GetNew;
             public int id;
-            public Type(string label, Func<PlayerController> GetNew)
+            public bool isHuman;
+            public Type(string label, Func<PlayerController> GetNew, bool isHuman = false)
             {
                 this.label = label;
                 this.GetNew = GetNew;
                 this.id = TYPES.Count;
+                this.isHuman = isHuman;
                 TYPES.Add(this);
             }
         }
-        public static readonly Type HUMAN = new Type(" Člověk", () => new HumanPlayerController());
+        public static readonly Type HUMAN = new Type(" Člověk", () => new HumanPlayerController(), true);
 
     }
 }

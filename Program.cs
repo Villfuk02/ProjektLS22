@@ -12,7 +12,6 @@ namespace ProjektLS22
                 Init();
                 while (g.active)
                 {
-                    Renderer.RenderState(g);
                     g.NextStep();
                 }
             }

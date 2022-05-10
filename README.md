@@ -18,3 +18,4 @@ uhhhh
 - pravděpodobnostní minmax
 - (ložené)
 - pravidla
+- game over

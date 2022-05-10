@@ -7,7 +7,7 @@ namespace ProjektLS22
     public static class Utils
     {
 
-        static Random rand = new Random();
+        public static Random rand = new Random();
         public static void Shuffle(this List<Card> cards)
         {
             int n = cards.Count;
