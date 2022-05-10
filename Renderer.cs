@@ -1,22 +1,54 @@
 using System;
+using System.Collections.Generic;
+
 
 namespace ProjektLS22
 {
     public class Renderer
     {
         public static Print PRINT = new Print();
-        public static void RenderState(Game g, string status)
+        public static void RenderState(Game g)
         {
             PRINT.CLR();
-            PRINT.P(status).NL();
+            PRINT.P(g.status).NL().NL();
             switch (g.phase)
             {
                 case Game.Phase.CUT:
                     {
-                        PRINT.CB(32).NL();
+                        List<Card> lower = g.deck.GetRange(32 - g.info, g.info);
+                        List<Card> upper = g.deck.GetRange(0, 32 - g.info);
+                        if (g.step <= 1)
+                        {
+                            PRINT.C(lower, Hidden(g)).C(upper, Hidden(g)).NL(4);
+                        }
+                        else if (g.step == 2)
+                        {
+                            PRINT.C(lower, Hidden(g)).S(1).C(upper, Hidden(g)).NL(4);
+                        }
+                        else if (g.step == 3)
+                        {
+                            PRINT.S(lower.Count + 1).C(upper, Hidden(g)).NL().C(lower, Hidden(g)).NL(3);
+                        }
+                        else if (g.step == 4)
+                        {
+                            PRINT.C(upper, Hidden(g)).NL().S(upper.Count + 1).C(lower, Hidden(g)).NL(3);
+                        }
+                        else if (g.step == 5)
+                        {
+                            PRINT.C(upper, Hidden(g)).S(1).C(lower, Hidden(g)).NL(4);
+                        }
+                        else if (g.step == 6)
+                        {
+                            PRINT.C(upper, Hidden(g)).C(lower, Hidden(g)).NL(4);
+                        }
                         break;
                     }
             }
+        }
+
+        static bool Hidden(Game g)
+        {
+            return g.cardShowing == Game.CardShowing.ALL;
         }
 
         public class Print
@@ -73,9 +105,9 @@ namespace ProjektLS22
                 return this;
             }
             //NEW LINE
-            public Print NL()
+            public Print NL(int count = 1)
             {
-                Console.Write('\n');
+                Console.Write(new string('\n', count));
                 return this;
             }
             //CLEAR
@@ -140,6 +172,27 @@ namespace ProjektLS22
                 Console.BackgroundColor = b;
                 Console.ForegroundColor = f;
                 return this;
+            }
+            public Print C(List<Card> cards, bool show)
+            {
+                if (!show)
+                {
+                    return CB(cards.Count);
+                }
+                else
+                {
+                    ConsoleColor f = Console.ForegroundColor;
+                    ConsoleColor b = Console.BackgroundColor;
+                    foreach (Card c in cards)
+                    {
+                        Console.BackgroundColor = c.suit.color;
+                        Console.ForegroundColor = ConsoleColor.Black;
+                        P(c.value.symbol);
+                    }
+                    Console.BackgroundColor = b;
+                    Console.ForegroundColor = f;
+                    return this;
+                }
             }
             //PRINT CARD BACKS
             public Print CB(int count = 1)
