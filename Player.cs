@@ -6,7 +6,7 @@ namespace ProjektLS22
     public class Player
     {
         public int index;
-        PlayerController controller;
+        public PlayerController controller;
         public int cash = 50;
         public List<Card> hand = new List<Card>();
         public List<Card> discard = new List<Card>();

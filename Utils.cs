@@ -30,5 +30,38 @@ namespace ProjektLS22
             thread.Start();
             while (thread.IsAlive) ;
         }
+
+        public static int TranslatePlayerNum(int num)
+        {
+            return (num + 3) % 3 + 1;
+        }
+
+        public static void SortCards(ref List<Card> cards, Suit trumps, bool seven)
+        {
+            cards.Sort(0, (seven ? 7 : cards.Count), Comparer<Card>.Create((Card a, Card b) =>
+            {
+                int res = 0;
+                res = CompareEquals(a.suit, b.suit, trumps);
+                if (res != 0) return res;
+                foreach (Suit s in Suit.ALL)
+                {
+                    res = CompareEquals(a.suit, b.suit, s);
+                    if (res != 0) return res;
+                }
+                return a.value.gameStrength - b.value.gameStrength;
+            }));
+        }
+
+        public static int CompareEquals(Object a, Object b, Object compareTo)
+        {
+            return CompareBool(a == compareTo, b == compareTo);
+        }
+
+        public static int CompareBool(bool a, bool b)
+        {
+            if (a == b)
+                return 0;
+            return a ? -1 : 1;
+        }
     }
 }

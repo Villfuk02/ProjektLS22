@@ -22,6 +22,7 @@ namespace ProjektLS22
             }
         }
         public static readonly Type HUMAN = new Type(" Člověk", () => new HumanPlayerController(), true);
-
+        public bool isHuman = false;
+        public abstract void GetOptions(Game g);
     }
 }

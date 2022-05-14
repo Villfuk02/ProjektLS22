@@ -7,7 +7,12 @@ namespace ProjektLS22
         bool choosingPlacement = false;
         public HumanPlayerController()
         {
+            isHuman = true;
+        }
 
+        public override void GetOptions(Game g)
+        {
+            Renderer.PRINT.P("UHHH");
         }
     }
 }

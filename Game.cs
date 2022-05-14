@@ -1,13 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Runtime.InteropServices;
 using ProjektLS22;
 
 public class Game
 {
     public bool active = false;
     public bool auction = false;
-    public enum Phase { INIT, CUT, DEAL, CALL_GAME, AUCTION, STAKES, GAME, PAY, COLLECT };
+    public enum Phase { INIT, CUT, DEAL, STAKES, GAME, PAY, COLLECT };
 
     public Phase phase = Phase.INIT;
 
@@ -15,17 +16,16 @@ public class Game
     public Player[] players = new Player[GameSetup.PLAYER_AMT];
     public List<Card> talon = new List<Card>();
     public List<Card> trick = new List<Card>();
-    public int activePlayer = 0;
+    public int activePlayer = -1;
     public int dealer = 0;
     public int step = 0;
     public enum CardShowing { ALL, ACTIVE_HUMAN, HUMAN };
-    public CardShowing cardShowing = CardShowing.ALL;
-    public bool isActive = false;
+    public CardShowing cardShowing = CardShowing.ACTIVE_HUMAN;
+    public bool waitingForPlayer = false;
     public string status = "";
     int wait = 0;
 
     public int info = 0;
-    private Dictionary<Phase, Action[]> steps;
     public Game(PlayerController.Type[] playerTypes)
     {
         int humans = 0;
@@ -46,29 +46,31 @@ public class Game
         dealer = Utils.rand.Next(GameSetup.PLAYER_AMT);
         deck.Shuffle();
         active = true;
-
-        steps = new Dictionary<Phase, Action[]>{
-            {Phase.INIT, new Action[]{
-                () => Step("Míchání...", 500),
-                () => Step(Phase.CUT)
-            }},
-            {Phase.CUT, new Action[]{
-                CutCardsStep,
-                () => Step(1000),
-                () => Step(400),
-                () => Step(400),
-                () => Step(400),
-                () => Step(400),
-                () => Step(Phase.DEAL)
-            }},
-            {Phase.DEAL, new Action[]{
-
-            }}
-        };
     }
+
+    public void DoStep()
+    {
+        switch (phase)
+        {
+            case Phase.INIT:
+                InitPhase();
+                return;
+            case Phase.CUT:
+                CutPhase();
+                return;
+            case Phase.DEAL:
+                DealPhase();
+                return;
+
+            default:
+                Step("INVALID STATE", 1000);
+                return;
+        }
+    }
+
     public void NextStep()
     {
-        steps[phase][step]();
+        DoStep();
         Renderer.RenderState(this);
         if (wait > 0)
             Utils.Wait(wait);
@@ -106,13 +108,73 @@ public class Game
         Step(status, wait);
     }
 
-    void CutCardsStep()
+
+    Player GetPlayer(int num)
     {
-        int cut = Utils.rand.Next(2, 30);
-        List<Card> n = deck.GetRange(cut, 32 - cut);
-        n.AddRange(deck.GetRange(0, cut));
-        deck = n;
-        info = cut;
-        Step($"Hráč {(dealer + 2) % 3 + 1} snímá...", 1000);
+        return players[(num + GameSetup.PLAYER_AMT) % GameSetup.PLAYER_AMT];
+    }
+    void InitPhase()
+    {
+        if (step == 0)
+            Step("Míchání...", 500);
+        else
+            Step(Phase.CUT);
+    }
+
+    void CutPhase()
+    {
+        if (step == 0)
+        {
+            int cut = Utils.rand.Next(2, 30);
+            List<Card> n = deck.GetRange(cut, 32 - cut);
+            n.AddRange(deck.GetRange(0, cut));
+            deck = n;
+            info = cut;
+            Step($"Hráč {Utils.TranslatePlayerNum(dealer - 1)} snímá...", 1000);
+        }
+        else if (step == 1)
+        {
+            Step(1000);
+        }
+        else if (step <= 5)
+        {
+            Step(400);
+        }
+        else
+        {
+            Step(Phase.DEAL);
+        }
+    }
+
+    void DealPhase()
+    {
+        if (step == 0)
+        {
+            activePlayer = (dealer + 1) % GameSetup.PLAYER_AMT;
+            Step($"Hráč {Utils.TranslatePlayerNum(dealer)} rozdává...", 1000);
+        }
+        else if (step <= 6)
+        {
+            DealCards(step == 1 ? 7 : 5, GetPlayer(dealer + step).hand);
+            Step(400);
+        }
+        else if (step == 7)
+        {
+            for (int i = 0; i < GameSetup.PLAYER_AMT; i++)
+            {
+                Utils.SortCards(ref players[i].hand, null, i == activePlayer);
+            }
+            Step(400);
+        }
+        else
+        {
+            Step(Phase.STAKES);
+        }
+    }
+
+    void DealCards(int num, List<Card> destination)
+    {
+        destination.AddRange(deck.GetRange(0, num));
+        deck.RemoveRange(0, num);
     }
 }

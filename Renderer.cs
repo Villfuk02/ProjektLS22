@@ -19,7 +19,7 @@ namespace ProjektLS22
                         List<Card> upper = g.deck.GetRange(0, 32 - g.info);
                         if (g.step <= 1)
                         {
-                            PRINT.C(lower, Hidden(g)).C(upper, Hidden(g)).NL(4);
+                            PRINT.C(lower, Hidden(g)).C(upper, Hidden(g)).NL(5);
                         }
                         else if (g.step == 2)
                         {
@@ -27,7 +27,7 @@ namespace ProjektLS22
                         }
                         else if (g.step == 3)
                         {
-                            PRINT.S(lower.Count + 1).C(upper, Hidden(g)).NL().C(lower, Hidden(g)).NL(3);
+                            PRINT.S(lower.Count + 1).C(upper, Hidden(g)).NL().C(lower, Hidden(g)).NL(4);
                         }
                         else if (g.step == 4)
                         {
@@ -43,12 +43,87 @@ namespace ProjektLS22
                         }
                         break;
                     }
+                case Game.Phase.DEAL:
+                    {
+                        PRINT.C(g.deck, Hidden(g)).NL().NL();
+                        PrintPlayers(g, true);
+                        break;
+                    }
+            }
+            if (g.waitingForPlayer)
+            {
+                PRINT.NL().P($"Hráč {g.activePlayer + 1}: ");
+                g.players[g.activePlayer].controller.GetOptions(g);
             }
         }
 
         static bool Hidden(Game g)
         {
             return g.cardShowing == Game.CardShowing.ALL;
+        }
+
+        static bool ShowHand(Game g, int player)
+        {
+            if (g.cardShowing == Game.CardShowing.ALL)
+                return true;
+            if (g.cardShowing == Game.CardShowing.HUMAN)
+                return g.players[player].controller.isHuman;
+            if (g.cardShowing == Game.CardShowing.ACTIVE_HUMAN)
+                return g.players[player].controller.isHuman && player == g.activePlayer;
+            return false;
+        }
+
+        static void PrintPlayers(Game g, bool dealing)
+        {
+            PRINT.G();
+            for (int i = 0; i < GameSetup.PLAYER_AMT; i++)
+            {
+                if (g.waitingForPlayer && g.activePlayer == i)
+                {
+                    PRINT.W().P($">Hráč {Utils.TranslatePlayerNum(i)}<").G();
+                }
+                else
+                {
+                    PRINT.P($" Hráč {Utils.TranslatePlayerNum(i)} ");
+                }
+                PRINT.S(7);
+            }
+            if (g.talon.Count > 0)
+            {
+                PRINT.P(" Talón");
+            }
+            PRINT.NL();
+            for (int i = 0; i < GameSetup.PLAYER_AMT; i++)
+            {
+                bool visible = ShowHand(g, i);
+                PRINT.S(1);
+                int width = PrintHand(g.players[i].hand, visible, i == g.activePlayer, g.cardShowing == Game.CardShowing.ALL);
+                PrintTricks(13 - width, 0, null);
+                PRINT.S(1);
+            }
+            PRINT.NL();
+        }
+
+        public static int PrintHand(List<Card> hand, bool visible, bool deal, bool all)
+        {
+            if (deal && hand.Count > 7)
+            {
+                PRINT.C(hand.GetRange(0, 7), visible).S(1).C(hand.GetRange(7, hand.Count - 7), all);
+                return hand.Count + 1;
+            }
+            else
+            {
+                PRINT.C(hand, visible);
+                return hand.Count;
+            }
+        }
+
+        public static void PrintTricks(int space, int tricks, List<Card> marriages)
+        {
+            if (tricks > 0)
+                PRINT.S(space - 1).B(ConsoleColor.Blue).W().D(tricks).R();
+            else
+                PRINT.S(space);
         }
 
         public class Print
@@ -116,11 +191,13 @@ namespace ProjektLS22
                 Console.Clear();
                 return this;
             }
-            //DARK GRAY
-            public Print D()
+            //DIGIT
+            public Print D(int n)
             {
-                Console.ForegroundColor = ConsoleColor.DarkGray;
-                return this;
+                if (n < 10)
+                    return P(n, 1);
+                else
+                    return P('X');
             }
             //GRAY
             public Print G()
