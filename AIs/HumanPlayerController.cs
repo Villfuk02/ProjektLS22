@@ -6,7 +6,7 @@ namespace ProjektLS22
     {
         public static readonly string cardChoiceLetters = "QWERTASDFGHJ";
 
-        public HumanPlayerController(Player p) : base(p)
+        public HumanPlayerController()
         {
             isHuman = true;
         }
@@ -19,7 +19,15 @@ namespace ProjektLS22
                     {
                         if (g.step == 1)
                         {
-                            Renderer.PRINT.P("| Vyber trumf ").H().P(cardChoiceLetters.Substring(0, 7)).H().P(" | Vyber z ").H("Lidu |");
+                            Renderer.PRINT.P("| Vyber trumf ");
+                            Utils.PrintValidChoices(player.hand, g.trumps, g.trick, Utils.ValidTrump);
+                            Renderer.PRINT.P(" | Vyber z ").H("Lidu |");
+                        }
+                        else if (g.step == 3)
+                        {
+                            Renderer.PRINT.P("| Odhoď do talonu ");
+                            Utils.PrintValidChoices(player.hand, g.trumps, g.trick, Utils.ValidTalon);
+                            Renderer.PRINT.P(" |");
                         }
                         break;
                     }
@@ -35,6 +43,12 @@ namespace ProjektLS22
             if (choice == -1 || choice >= 7)
                 return -2;
             return choice;
+        }
+
+        public override int ChooseTalon()
+        {
+            ConsoleKeyInfo k = Console.ReadKey(true);
+            return cardChoiceLetters.IndexOf(char.ToUpper(k.KeyChar));
         }
     }
 }

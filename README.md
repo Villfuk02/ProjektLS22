@@ -4,7 +4,6 @@ uhhhh
 
 ## TODO
 
-- rychlá hra
 - sehrávka
 - hlášky
 - prachy

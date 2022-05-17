@@ -65,5 +65,28 @@ namespace ProjektLS22
                 return 0;
             return a ? -1 : 1;
         }
+
+        public static bool ValidTalon(int i, Card c, Card t, List<Card> trick)
+        {
+            return c != t && c.value.gameStrength < Value.DESET.gameStrength;
+        }
+
+        public static bool ValidTrump(int i, Card c, Card t, List<Card> trick)
+        {
+            return i < 7;
+        }
+
+        public static void PrintValidChoices(List<Card> cards, Card trumps, List<Card> trick, Func<int, Card, Card, List<Card>, bool> validator)
+        {
+            Renderer.PRINT.H();
+            for (int i = 0; i < cards.Count; i++)
+            {
+                if (validator(i, cards[i], trumps, trick))
+                {
+                    Renderer.PRINT.P(HumanPlayerController.cardChoiceLetters[i]);
+                }
+            }
+            Renderer.PRINT.H();
+        }
     }
 }

@@ -63,15 +63,23 @@ namespace ProjektLS22
                         // print flekování
                         PRINT.NL();
                         PrintPlayers(g, g.step == 1);
-                        if (g.step == 1 && g.players[g.activePlayer].controller.isHuman)
+                        if (g.players[g.activePlayer].controller.isHuman)
                         {
-                            PrintCardSelection(g, (int i, Card c, Suit t, List<Card> trick) => i < 7);
+                            if (g.step == 1)
+                            {
+                                PrintCardSelection(g, Utils.ValidTrump);
+                            }
+                            else if (g.step == 3)
+                            {
+                                PrintCardSelection(g, Utils.ValidTalon);
+                            }
                         }
                         break;
                     }
                 case Game.Phase.GAME:
                     {
                         PRINT.NL(2);//print trick
+                        PrintPlayers(g, false);
                         break;
                     }
             }
@@ -98,7 +106,7 @@ namespace ProjektLS22
             return false;
         }
 
-        static void PrintPlayers(Game g, bool dealing)
+        static void PrintPlayers(Game g, bool seven)
         {
             PRINT.G();
             for (int i = 0; i < GameSetup.PLAYER_AMT; i++)
@@ -121,16 +129,21 @@ namespace ProjektLS22
             {
                 bool visible = ShowHand(g, i);
                 PRINT.S(1);
-                int width = PrintHand(g.players[i].hand, visible, i == g.activePlayer, g.cardShowing == Game.CardShowing.ALL);
+                int width = PrintHand(g.players[i].hand, visible, seven && i == g.activePlayer, g.cardShowing == Game.CardShowing.ALL);
                 PrintTricks(WIDTH_PER_PLAYER - 2 - width, 0, null);
                 PRINT.S(1);
+            }
+            if (g.talon.Count > 0)
+            {
+                PRINT.S(1);
+                PrintHand(g.talon, Hidden(g), false, g.cardShowing == Game.CardShowing.ALL);
             }
             PRINT.NL();
         }
 
-        public static int PrintHand(List<Card> hand, bool visible, bool deal, bool all)
+        public static int PrintHand(List<Card> hand, bool visible, bool seven, bool all)
         {
-            if (deal && hand.Count > 7)
+            if (seven && hand.Count > 7)
             {
                 PRINT.C(hand.GetRange(0, 7), visible).S(1).C(hand.GetRange(7, hand.Count - 7), all);
                 return hand.Count + 1;
@@ -150,7 +163,7 @@ namespace ProjektLS22
                 PRINT.S(space);
         }
 
-        public static void PrintCardSelection(Game g, Func<int, Card, Suit, List<Card>, bool> showCard)
+        public static void PrintCardSelection(Game g, Func<int, Card, Card, List<Card>, bool> validator)
         {
             PRINT.S(1);
             for (int i = 0; i < GameSetup.PLAYER_AMT; i++)
@@ -160,10 +173,13 @@ namespace ProjektLS22
                     PRINT.DG();
                     for (int j = 0; j < WIDTH_PER_PLAYER; j++)
                     {
-                        Suit t = g.trumps == null ? null : g.trumps.suit;
-                        if (j < g.players[i].hand.Count && showCard(j, g.players[i].hand[j], t, g.trick))
+                        if (j < g.players[i].hand.Count && validator(j, g.players[i].hand[j], g.trumps, g.trick))
                         {
                             PRINT.P(HumanPlayerController.cardChoiceLetters[j]);
+                        }
+                        else
+                        {
+                            PRINT.S(1);
                         }
                     }
                     PRINT.R();

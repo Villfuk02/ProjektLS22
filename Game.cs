@@ -34,11 +34,12 @@ public class Game
         int humans = 0;
         for (int i = 0; i < GameSetup.PLAYER_AMT; i++)
         {
-            players[i] = new Player(i, playerTypes[i].GetNew(players[i]));
+            players[i] = new Player(i, playerTypes[i].GetNew());
+            players[i].controller.player = players[i];
             if (playerTypes[i].id == PlayerController.HUMAN.id)
                 humans++;
         }
-        //cardShowing = humans == 0 ? CardShowing.ALL : (humans == 1 ? CardShowing.HUMAN : CardShowing.ACTIVE_HUMAN);
+        cardShowing = humans == 0 ? CardShowing.ALL : (humans == 1 ? CardShowing.HUMAN : CardShowing.ACTIVE_HUMAN);
         foreach (Suit s in Suit.ALL)
         {
             foreach (Value v in Value.ALL)
@@ -215,11 +216,34 @@ public class Game
                         {
                             trumps = players[activePlayer].hand[choice];
                         }
-                        Step($"{Utils.TranslatePlayer(activePlayer)} vybral trumfy", 500);
+                        Step($"{Utils.TranslatePlayer(activePlayer)} vybral trumfy", 300);
                     }
                     break;
                 }
             case 2:
+                {
+                    for (int i = 0; i < GameSetup.PLAYER_AMT; i++)
+                    {
+                        Utils.SortCards(ref players[i].hand, trumps.suit, false);
+                    }
+                    Step($"{Utils.TranslatePlayer(activePlayer)} odhazuje do talonu...");
+                    break;
+                }
+            case 3:
+                {
+                    int choice = players[activePlayer].controller.ChooseTalon();
+                    if (choice >= 0 && choice < players[activePlayer].hand.Count
+                        && Utils.ValidTalon(choice, players[activePlayer].hand[choice], trumps, trick))
+                    {
+                        Card c = players[activePlayer].hand[choice];
+                        players[activePlayer].hand.RemoveAt(choice);
+                        talon.Add(c);
+                        if (talon.Count == 2)
+                            Step($"{Utils.TranslatePlayer(activePlayer)} odhodil do talonu");
+                    }
+                    break;
+                }
+            case 4:
                 {
                     //flekování
                     Step(Phase.GAME);
@@ -234,10 +258,7 @@ public class Game
         {
             case 0:
                 {
-                    for (int i = 0; i < GameSetup.PLAYER_AMT; i++)
-                    {
-                        Utils.SortCards(ref players[i].hand, trumps.suit, false);
-                    }
+
                     Step($"{Utils.TranslatePlayer(activePlayer)} vynáší...", 400);
                     break;
                 }

@@ -20,8 +20,8 @@ namespace ProjektLS22
             menuHandler.RegisterOption('S', () => { state = State.Finished; });
             menuHandler.RegisterOption('P', () => { state = State.Rules; });
             menuHandler.RegisterParametricOption("JFK", ChangeAI);
-            //redo
-            menuHandler.RegisterOption('R', () => { fast = true; state = State.Finished; });
+            //debug only
+            menuHandler.RegisterOption('X', () => { fast = true; state = State.Finished; });
 
             rulesHandler.RegisterOption('S', () => { state = State.Finished; });
             rulesHandler.RegisterOption('Z', () => { state = State.Menu; });
