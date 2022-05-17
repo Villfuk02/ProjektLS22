@@ -4,10 +4,12 @@ uhhhh
 
 ## TODO
 
+- rychlá hra
 - sehrávka
 - hlášky
 - prachy
 - flekování
+- random AI
 - naivní AI
 - pravděpodobnostní minmax
 - pravidla

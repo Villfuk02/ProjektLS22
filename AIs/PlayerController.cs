@@ -9,20 +9,28 @@ namespace ProjektLS22
         public struct Type
         {
             public string label;
-            public Func<PlayerController> GetNew;
+            public Func<Player, PlayerController> GetNew;
             public int id;
-            public bool isHuman;
-            public Type(string label, Func<PlayerController> GetNew, bool isHuman = false)
+            public Type(string label, Func<Player, PlayerController> GetNew, bool isHuman = false)
             {
                 this.label = label;
                 this.GetNew = GetNew;
                 this.id = TYPES.Count;
-                this.isHuman = isHuman;
                 TYPES.Add(this);
             }
         }
-        public static readonly Type HUMAN = new Type(" Člověk", () => new HumanPlayerController(), true);
+        public static readonly Type HUMAN = new Type(" Člověk ", (Player p) => new HumanPlayerController(p));
         public bool isHuman = false;
-        public abstract void GetOptions(Game g);
+        Player player;
+        public PlayerController(Player p)
+        {
+            player = p;
+        }
+        public virtual void GetOptions(Game g)
+        {
+            Renderer.PRINT.P($"{Utils.TranslatePlayer(g.activePlayer)} is thinking...");
+            Utils.Wait(1000);
+        }
+        public abstract int ChooseTrumps();
     }
 }

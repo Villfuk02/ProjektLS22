@@ -9,11 +9,23 @@ namespace ProjektLS22
         PlayerController.Type[] players = new PlayerController.Type[PLAYER_AMT];
         enum State { Menu, Rules, Finished };
         State state = State.Menu;
+        InputHandler menuHandler = new InputHandler();
+        InputHandler rulesHandler = new InputHandler();
         public static readonly int[] CASH_OPTIONS = new int[] { 20, 50, 100, 200, 500, 1000 };
         public int cash_selected = 2;
+        bool fast = false;
 
         public GameSetup()
         {
+            menuHandler.RegisterOption('S', () => { state = State.Finished; });
+            menuHandler.RegisterOption('P', () => { state = State.Rules; });
+            menuHandler.RegisterParametricOption("JFK", ChangeAI);
+            //redo
+            menuHandler.RegisterOption('R', () => { fast = true; state = State.Finished; });
+
+            rulesHandler.RegisterOption('S', () => { state = State.Finished; });
+            rulesHandler.RegisterOption('Z', () => { state = State.Menu; });
+
             for (int i = 0; i < PLAYER_AMT; i++)
             {
                 players[i] = PlayerController.HUMAN;
@@ -21,7 +33,10 @@ namespace ProjektLS22
             while (state != State.Finished)
             {
                 PrintInfo();
-                ProcessInput(Console.ReadKey(true));
+                if (state == State.Menu)
+                    menuHandler.ProcessInput();
+                else if (state == State.Rules)
+                    rulesHandler.ProcessInput();
             }
         }
 
@@ -36,7 +51,7 @@ namespace ProjektLS22
                 Renderer.PRINT.CLR().R().G().P("Nastavení hry:").NL().NL();
                 for (int i = 0; i < PLAYER_AMT; i++)
                 {
-                    Renderer.PRINT.W().P(" ").B(ConsoleColor.Blue).P(" Hráč ").P(i + 1, 1).P(" ").B().P("  ");
+                    Renderer.PRINT.W().P(" ").B(ConsoleColor.Blue).P(" ").P(Utils.TranslatePlayer(i), 7, true).B().P("  ");
                 }
                 Renderer.PRINT.NL();
                 for (int i = 0; i < PLAYER_AMT; i++)
@@ -48,49 +63,13 @@ namespace ProjektLS22
             switch (state)
             {
                 case State.Menu:
-                    Renderer.PRINT.G().P("| ").H("Start | Změň AI hráče ").H("1 až ").H(PLAYER_AMT.ToString()).P(" | ").H("Pravidla |");
+                    Renderer.PRINT.G().P("| ").H("Start | Změň AI ").H("Jardy, ").H("Franty nebo ").H("Karla | ").H("Pravidla |");
                     break;
                 case State.Rules:
                     Renderer.PRINT.G().P("| ").H("Start | ").H("Zpět do menu |");
                     break;
             }
             Renderer.PRINT.NL();
-        }
-
-        void ProcessInput(ConsoleKeyInfo k)
-        {
-            switch (state)
-            {
-                case State.Menu:
-                    switch (k.Key)
-                    {
-                        case ConsoleKey.S:
-                            state = State.Finished;
-                            break;
-                        case ConsoleKey.P:
-                            state = State.Rules;
-                            break;
-                        default:
-                            char c = k.KeyChar;
-                            if (c >= '1' && c <= '0' + PLAYER_AMT)
-                            {
-                                ChangeAI(c - '1');
-                            }
-                            break;
-                    }
-                    break;
-                case State.Rules:
-                    switch (k.Key)
-                    {
-                        case ConsoleKey.S:
-                            state = State.Finished;
-                            break;
-                        case ConsoleKey.Z:
-                            state = State.Menu;
-                            break;
-                    }
-                    break;
-            }
         }
 
         void ChangeAI(int player)
@@ -101,7 +80,7 @@ namespace ProjektLS22
 
         public Game NewGame()
         {
-            return new Game(players);
+            return new Game(players, fast);
         }
     }
 }

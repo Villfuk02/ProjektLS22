@@ -6,10 +6,18 @@ namespace ProjektLS22
 {
     public class Renderer
     {
+        public static readonly int WIDTH_PER_PLAYER = 15;
         public static Print PRINT = new Print();
         public static void RenderState(Game g)
         {
             PRINT.CLR();
+            if (g.trumps != null)
+            {
+                PRINT.P("Trumfy: ").C(g.trumps);
+                if (g.zLidu)
+                    PRINT.DG().P("(z lidu)").R();
+                PRINT.P(" | ");
+            }
             PRINT.P(g.status).NL().NL();
             switch (g.phase)
             {
@@ -49,10 +57,27 @@ namespace ProjektLS22
                         PrintPlayers(g, true);
                         break;
                     }
+                case Game.Phase.STAKES:
+                    {
+                        PRINT.NL();
+                        // print flekování
+                        PRINT.NL();
+                        PrintPlayers(g, g.step == 1);
+                        if (g.step == 1 && g.players[g.activePlayer].controller.isHuman)
+                        {
+                            PrintCardSelection(g, (int i, Card c, Suit t, List<Card> trick) => i < 7);
+                        }
+                        break;
+                    }
+                case Game.Phase.GAME:
+                    {
+                        PRINT.NL(2);//print trick
+                        break;
+                    }
             }
             if (g.waitingForPlayer)
             {
-                PRINT.NL().P($"Hráč {g.activePlayer + 1}: ");
+                PRINT.NL();
                 g.players[g.activePlayer].controller.GetOptions(g);
             }
         }
@@ -80,13 +105,12 @@ namespace ProjektLS22
             {
                 if (g.waitingForPlayer && g.activePlayer == i)
                 {
-                    PRINT.W().P($">Hráč {Utils.TranslatePlayerNum(i)}<").G();
+                    PRINT.W().P($">{Utils.TranslatePlayer(i)}<", WIDTH_PER_PLAYER, true).G();
                 }
                 else
                 {
-                    PRINT.P($" Hráč {Utils.TranslatePlayerNum(i)} ");
+                    PRINT.P($" {Utils.TranslatePlayer(i)}", WIDTH_PER_PLAYER, true);
                 }
-                PRINT.S(7);
             }
             if (g.talon.Count > 0)
             {
@@ -98,7 +122,7 @@ namespace ProjektLS22
                 bool visible = ShowHand(g, i);
                 PRINT.S(1);
                 int width = PrintHand(g.players[i].hand, visible, i == g.activePlayer, g.cardShowing == Game.CardShowing.ALL);
-                PrintTricks(13 - width, 0, null);
+                PrintTricks(WIDTH_PER_PLAYER - 2 - width, 0, null);
                 PRINT.S(1);
             }
             PRINT.NL();
@@ -124,6 +148,31 @@ namespace ProjektLS22
                 PRINT.S(space - 1).B(ConsoleColor.Blue).W().D(tricks).R();
             else
                 PRINT.S(space);
+        }
+
+        public static void PrintCardSelection(Game g, Func<int, Card, Suit, List<Card>, bool> showCard)
+        {
+            PRINT.S(1);
+            for (int i = 0; i < GameSetup.PLAYER_AMT; i++)
+            {
+                if (g.activePlayer == i)
+                {
+                    PRINT.DG();
+                    for (int j = 0; j < WIDTH_PER_PLAYER; j++)
+                    {
+                        Suit t = g.trumps == null ? null : g.trumps.suit;
+                        if (j < g.players[i].hand.Count && showCard(j, g.players[i].hand[j], t, g.trick))
+                        {
+                            PRINT.P(HumanPlayerController.cardChoiceLetters[j]);
+                        }
+                    }
+                    PRINT.R();
+                }
+                else
+                {
+                    PRINT.S(WIDTH_PER_PLAYER);
+                }
+            }
         }
 
         public class Print
@@ -198,6 +247,12 @@ namespace ProjektLS22
                     return P(n, 1);
                 else
                     return P('X');
+            }
+            //DARK GRAY
+            public Print DG()
+            {
+                Console.ForegroundColor = ConsoleColor.DarkGray;
+                return this;
             }
             //GRAY
             public Print G()

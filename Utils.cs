@@ -31,9 +31,11 @@ namespace ProjektLS22
             while (thread.IsAlive) ;
         }
 
-        public static int TranslatePlayerNum(int num)
+        static string[] names = { "Jarda", "Franta", "Karel" };
+        public static string TranslatePlayer(int num)
         {
-            return (num + 3) % 3 + 1;
+            num = (num + GameSetup.PLAYER_AMT) % GameSetup.PLAYER_AMT;
+            return names[num];
         }
 
         public static void SortCards(ref List<Card> cards, Suit trumps, bool seven)
