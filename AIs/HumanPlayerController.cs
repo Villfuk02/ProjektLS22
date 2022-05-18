@@ -31,10 +31,17 @@ namespace ProjektLS22
                         }
                         break;
                     }
+                case Game.Phase.GAME:
+                    {
+                        Renderer.PRINT.P("| Zahraj kartu ");
+                        Utils.PrintValidChoices(player.hand, g.trumps, g.trick, Utils.ValidPlay);
+                        Renderer.PRINT.P(" |");
+                        break;
+                    }
             }
         }
 
-        public override int ChooseTrumps()
+        public override int ChooseTrumps(Game g)
         {
             ConsoleKeyInfo k = Console.ReadKey(true);
             if (k.Key == ConsoleKey.L)
@@ -45,7 +52,12 @@ namespace ProjektLS22
             return choice;
         }
 
-        public override int ChooseTalon()
+        public override int ChooseTalon(Game g)
+        {
+            ConsoleKeyInfo k = Console.ReadKey(true);
+            return cardChoiceLetters.IndexOf(char.ToUpper(k.KeyChar));
+        }
+        public override int ChoosePlay(Game g)
         {
             ConsoleKeyInfo k = Console.ReadKey(true);
             return cardChoiceLetters.IndexOf(char.ToUpper(k.KeyChar));

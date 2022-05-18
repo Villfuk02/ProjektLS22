@@ -5,8 +5,7 @@ namespace ProjektLS22
 {
     public class GameSetup
     {
-        public static readonly int PLAYER_AMT = 3;
-        PlayerController.Type[] players = new PlayerController.Type[PLAYER_AMT];
+        PlayerController.Type[] players = new PlayerController.Type[3];
         enum State { Menu, Rules, Finished };
         State state = State.Menu;
         InputHandler menuHandler = new InputHandler();
@@ -26,7 +25,7 @@ namespace ProjektLS22
             rulesHandler.RegisterOption('S', () => { state = State.Finished; });
             rulesHandler.RegisterOption('Z', () => { state = State.Menu; });
 
-            for (int i = 0; i < PLAYER_AMT; i++)
+            for (int i = 0; i < 3; i++)
             {
                 players[i] = PlayerController.HUMAN;
             }
@@ -49,12 +48,12 @@ namespace ProjektLS22
             else
             {
                 Renderer.PRINT.CLR().R().G().P("Nastavení hry:").NL().NL();
-                for (int i = 0; i < PLAYER_AMT; i++)
+                for (int i = 0; i < 3; i++)
                 {
                     Renderer.PRINT.W().P(" ").B(ConsoleColor.Blue).P(" ").P(Utils.TranslatePlayer(i), 7, true).B().P("  ");
                 }
                 Renderer.PRINT.NL();
-                for (int i = 0; i < PLAYER_AMT; i++)
+                for (int i = 0; i < 3; i++)
                 {
                     Renderer.PRINT.W().P(" ").B(ConsoleColor.Blue).P(players[i].label, 8, true).B().P("  ");
                 }

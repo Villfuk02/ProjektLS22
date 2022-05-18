@@ -27,8 +27,9 @@ namespace ProjektLS22
             Renderer.PRINT.P($"{Utils.TranslatePlayer(g.activePlayer)} is thinking...");
             Utils.Wait(1000);
         }
-        public abstract int ChooseTrumps();
+        public abstract int ChooseTrumps(Game g);
 
-        public abstract int ChooseTalon();
+        public abstract int ChooseTalon(Game g);
+        public abstract int ChoosePlay(Game g);
     }
 }

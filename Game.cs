@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Linq;
 using System.Runtime.InteropServices;
 using ProjektLS22;
 
@@ -13,7 +14,7 @@ public class Game
     public Phase phase = Phase.INIT;
 
     public List<Card> deck = new List<Card>();
-    public Player[] players = new Player[GameSetup.PLAYER_AMT];
+    public Player[] players = new Player[3];
     public List<Card> talon = new List<Card>();
     public List<Card> trick = new List<Card>();
     public Card trumps;
@@ -32,7 +33,7 @@ public class Game
     {
         this.fast = fast;
         int humans = 0;
-        for (int i = 0; i < GameSetup.PLAYER_AMT; i++)
+        for (int i = 0; i < 3; i++)
         {
             players[i] = new Player(i, playerTypes[i].GetNew());
             players[i].controller.player = players[i];
@@ -47,7 +48,7 @@ public class Game
                 deck.Add(new Card(s, v));
             }
         }
-        dealer = Utils.rand.Next(GameSetup.PLAYER_AMT);
+        dealer = Utils.rand.Next(3);
         deck.Shuffle();
         active = true;
     }
@@ -125,12 +126,12 @@ public class Game
 
     Player GetPlayer(int num)
     {
-        return players[(num + GameSetup.PLAYER_AMT) % GameSetup.PLAYER_AMT];
+        return players[(num + 3) % 3];
     }
     void InitPhase()
     {
         if (step == 0)
-            Step("Míchání...", 500);
+            Step("Míchání...", 400);
         else
             Step(Phase.CUT);
     }
@@ -164,7 +165,7 @@ public class Game
     {
         if (step == 0)
         {
-            activePlayer = (dealer + 1) % GameSetup.PLAYER_AMT;
+            activePlayer = (dealer + 1) % 3;
             Step($"{Utils.TranslatePlayer(dealer)} rozdává...", 1000);
         }
         else if (step <= 6)
@@ -174,11 +175,11 @@ public class Game
         }
         else if (step == 7)
         {
-            for (int i = 0; i < GameSetup.PLAYER_AMT; i++)
+            for (int i = 0; i < 3; i++)
             {
                 Utils.SortCards(ref players[i].hand, null, i == activePlayer);
             }
-            Step(400);
+            Step(200);
         }
         else
         {
@@ -204,7 +205,7 @@ public class Game
                 }
             case 1:
                 {
-                    int choice = players[activePlayer].controller.ChooseTrumps();
+                    int choice = players[activePlayer].controller.ChooseTrumps(this);
                     if (choice >= -1 && choice < 7)
                     {
                         if (choice == -1)
@@ -216,13 +217,13 @@ public class Game
                         {
                             trumps = players[activePlayer].hand[choice];
                         }
-                        Step($"{Utils.TranslatePlayer(activePlayer)} vybral trumfy", 300);
+                        Step($"{Utils.TranslatePlayer(activePlayer)} vybral trumfy", 200);
                     }
                     break;
                 }
             case 2:
                 {
-                    for (int i = 0; i < GameSetup.PLAYER_AMT; i++)
+                    for (int i = 0; i < 3; i++)
                     {
                         Utils.SortCards(ref players[i].hand, trumps.suit, false);
                     }
@@ -231,9 +232,9 @@ public class Game
                 }
             case 3:
                 {
-                    int choice = players[activePlayer].controller.ChooseTalon();
+                    int choice = players[activePlayer].controller.ChooseTalon(this);
                     if (choice >= 0 && choice < players[activePlayer].hand.Count
-                        && Utils.ValidTalon(choice, players[activePlayer].hand[choice], trumps, trick))
+                        && Utils.ValidTalon(players[activePlayer].hand, choice, trumps, trick))
                     {
                         Card c = players[activePlayer].hand[choice];
                         players[activePlayer].hand.RemoveAt(choice);
@@ -258,30 +259,63 @@ public class Game
         {
             case 0:
                 {
-
-                    Step($"{Utils.TranslatePlayer(activePlayer)} vynáší...", 400);
+                    waitingForPlayer = true;
+                    Step($"{Utils.TranslatePlayer(activePlayer)} vynáší...", 200);
                     break;
                 }
             case 1:
                 {
-                    //vynášení
+                    int choice = players[activePlayer].controller.ChooseTalon(this);
+                    if (choice >= 0 && choice < players[activePlayer].hand.Count
+                        && Utils.ValidPlay(players[activePlayer].hand, choice, trumps, trick))
+                    {
+                        Card c = players[activePlayer].hand[choice];
+                        players[activePlayer].hand.RemoveAt(choice);
+                        trick.Add(c);
+                        NextPlayer();
+                        if (trick.Count != 3)
+                        {
+                            Step($"Na řadě je {Utils.TranslatePlayer(activePlayer)}...", 0, Phase.GAME, 1);
+                        }
+                        else
+                        {
+                            waitingForPlayer = false;
+                            Step();
+                        }
+                    }
                     break;
                 }
             case 2:
                 {
-                    //druhý
+                    int max = 0;
+                    int winner = -1;
+                    for (int i = 0; i < trick.Count; i++)
+                    {
+                        Card c = trick[i];
+                        int value = (c.suit == trumps.suit ? 200 : (c.suit == trick[0].suit ? 100 : 0)) + c.value.gameStrength;
+                        if (value > max)
+                        {
+                            max = value;
+                            winner = (activePlayer + i) % 3;
+                        }
+                    }
+                    info = winner;
+                    Step($"{Utils.TranslatePlayer(winner)} bere štych...", 4000);
                     break;
                 }
             case 3:
                 {
-                    //třetí
-                    break;
-                }
-            case 4:
-                {
-                    //vyhodnocení
+                    players[info].discard.AddRange(trick);
+                    trick.Clear();
+                    activePlayer = info;
+                    Step(Phase.GAME);
                     break;
                 }
         }
+    }
+
+    void NextPlayer()
+    {
+        activePlayer = (activePlayer + 1) % 3;
     }
 }

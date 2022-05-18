@@ -34,7 +34,7 @@ namespace ProjektLS22
         static string[] names = { "Jarda", "Franta", "Karel" };
         public static string TranslatePlayer(int num)
         {
-            num = (num + GameSetup.PLAYER_AMT) % GameSetup.PLAYER_AMT;
+            num = (num + 3) % 3;
             return names[num];
         }
 
@@ -66,22 +66,68 @@ namespace ProjektLS22
             return a ? -1 : 1;
         }
 
-        public static bool ValidTalon(int i, Card c, Card t, List<Card> trick)
+        public static bool ValidTalon(List<Card> hand, int i, Card trumps, List<Card> trick)
         {
-            return c != t && c.value.gameStrength < Value.DESET.gameStrength;
+            Card c = hand[i];
+            return c != trumps && c.value.gameStrength < Value.DESET.gameStrength;
         }
 
-        public static bool ValidTrump(int i, Card c, Card t, List<Card> trick)
+        public static bool ValidTrump(List<Card> hand, int i, Card trumps, List<Card> trick)
         {
             return i < 7;
         }
 
-        public static void PrintValidChoices(List<Card> cards, Card trumps, List<Card> trick, Func<int, Card, Card, List<Card>, bool> validator)
+        public static bool ValidPlay(List<Card> hand, int i, Card trumps, List<Card> trick)
+        {
+            if (trick.Count == 0)
+                return true;
+            Card selected = hand[i];
+            Card first = trick[0];
+            Card best = first;
+            if (trick.Count > 1)
+            {
+                if (trick[1].suit == first.suit)
+                {
+                    if (trick[1].value.gameStrength > first.value.gameStrength)
+                        best = trick[1];
+                }
+                else if (trick[1].suit == trumps.suit)
+                {
+                    best = trick[1];
+                }
+            }
+            if (hand.Exists((Card c) => c.suit == first.suit))
+            {
+                return ValidPlayOn(hand, selected, first.suit, best);
+            }
+            else if (hand.Exists((Card c) => c.suit == trumps.suit))
+            {
+                return ValidPlayOn(hand, selected, trumps.suit, best);
+            }
+            else
+            {
+                return true;
+            }
+        }
+
+        static bool ValidPlayOn(List<Card> hand, Card selected, Suit suit, Card best)
+        {
+            if (suit == best.suit && hand.Exists((Card c) => c.suit == best.suit && c.value.gameStrength > best.value.gameStrength))
+            {
+                return selected.suit == best.suit && selected.value.gameStrength > best.value.gameStrength;
+            }
+            else
+            {
+                return selected.suit == suit;
+            }
+        }
+
+        public static void PrintValidChoices(List<Card> cards, Card trumps, List<Card> trick, Func<List<Card>, int, Card, List<Card>, bool> validator)
         {
             Renderer.PRINT.H();
             for (int i = 0; i < cards.Count; i++)
             {
-                if (validator(i, cards[i], trumps, trick))
+                if (validator(cards, i, trumps, trick))
                 {
                     Renderer.PRINT.P(HumanPlayerController.cardChoiceLetters[i]);
                 }
