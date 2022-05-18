@@ -4,7 +4,8 @@ uhhhh
 
 ## TODO
 
-- sehrávka
+- vyznačit aktéra
+- vyhodnocení
 - hlášky
 - prachy
 - flekování
@@ -13,3 +14,7 @@ uhhhh
 - pravděpodobnostní minmax
 - pravidla
 - game over
+
+## rozdíly
+
+- hlášky nezůstávají u vlastníka
