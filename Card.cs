@@ -56,6 +56,6 @@ public class Value
     public static readonly Value SPODEK = new Value('J', 11, 11, false, false);
     public static readonly Value SVRŠEK = new Value('Q', 12, 12, false, true);
     public static readonly Value KRÁL = new Value('K', 13, 13, false, true);
-    public static readonly Value ESO = new Value('A', 20, 20, false, false);
+    public static readonly Value ESO = new Value('A', 20, 20, true, false);
     public static readonly Value[] ALL = new Value[] { SEDM, OSM, DEVĚT, DESET, SPODEK, SVRŠEK, KRÁL, ESO };
 }

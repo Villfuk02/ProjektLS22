@@ -10,7 +10,7 @@ namespace ProjektLS22
             while (true)
             {
                 Init();
-                while (g.active)
+                while (true)
                 {
                     g.NextStep();
                 }

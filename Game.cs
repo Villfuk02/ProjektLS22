@@ -7,9 +7,8 @@ using ProjektLS22;
 
 public class Game
 {
-    public bool active = false;
     public bool fast;
-    public enum Phase { INIT, CUT, DEAL, STAKES, GAME, PAY, COLLECT };
+    public enum Phase { INIT, CUT, DEAL, STAKES, GAME, SCORE, COLLECT };
 
     public Phase phase = Phase.INIT;
 
@@ -50,7 +49,6 @@ public class Game
         }
         dealer = Utils.rand.Next(3);
         deck.Shuffle();
-        active = true;
     }
 
     public void DoStep()
@@ -72,6 +70,12 @@ public class Game
             case Phase.GAME:
                 GamePhase();
                 return;
+            case Phase.SCORE:
+                ScorePhase();
+                return;
+            case Phase.COLLECT:
+                CollectPhase();
+                break;
             default:
                 Step("INVALID STATE", 1000);
                 return;
@@ -246,7 +250,6 @@ public class Game
                 }
             case 4:
                 {
-                    //flekování
                     Step(Phase.GAME);
                     break;
                 }
@@ -308,7 +311,14 @@ public class Game
                     players[info].discard.AddRange(trick);
                     trick.Clear();
                     activePlayer = info;
-                    Step(Phase.GAME);
+                    if (players[info].hand.Count == 0)
+                    {
+                        Step(Phase.SCORE);
+                    }
+                    else
+                    {
+                        Step(Phase.GAME);
+                    }
                     break;
                 }
         }
@@ -317,5 +327,67 @@ public class Game
     void NextPlayer()
     {
         activePlayer = (activePlayer + 1) % 3;
+    }
+
+    void ScorePhase()
+    {
+        if (step > 0)
+        {
+            dealer = (dealer + 1) % 3;
+            activePlayer = dealer;
+            Step($"{Utils.TranslatePlayer(dealer)} sbírá karty...", Phase.COLLECT);
+            return;
+        }
+        int offense = CountPoints((dealer + 1) % 3);
+        int defense = CountPoints(dealer) + CountPoints((dealer + 2) % 3);
+        int value = trumps.suit == Suit.ČERVENÝ ? 2 : 1;
+
+        if (offense > defense)
+        {
+            players[(dealer + 1) % 3].score += value;
+            Step($"Aktér vyhrál {offense}:{defense}!", 4000);
+        }
+        else
+        {
+            players[dealer].score += value;
+            players[(dealer + 2) % 3].score += value;
+            Step($"Obrana vyhrála {defense}:{offense}!", 4000);
+        }
+    }
+
+    int CountPoints(int player)
+    {
+        int pts = players[player].discard.Sum((Card c) => c.value.ten ? 10 : 0);
+        if (player == info)
+        {
+            pts += 10;
+        }
+        return pts;
+    }
+
+    void CollectPhase()
+    {
+        if (step == 0)
+        {
+            trumps = null;
+            zLidu = false;
+            List<List<Card>> collect = new List<List<Card>>();
+            for (int i = 0; i < 3; i++)
+            {
+                collect.Add(players[i].discard);
+            }
+            collect.Add(talon);
+            collect.Shuffle();
+            foreach (List<Card> list in collect)
+            {
+                deck.AddRange(list);
+                list.Clear();
+            }
+            Step(1000);
+        }
+        else
+        {
+            Step(Phase.CUT);
+        }
     }
 }

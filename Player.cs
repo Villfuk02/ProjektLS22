@@ -7,11 +7,9 @@ namespace ProjektLS22
     {
         public int index;
         public PlayerController controller;
-        public int cash = 50;
+        public int score = 0;
         public List<Card> hand = new List<Card>();
         public List<Card> discard = new List<Card>();
-
-        //public int flekování;
 
         public Player(int index, PlayerController controller)
         {

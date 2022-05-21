@@ -6,11 +6,11 @@ namespace ProjektLS22
 {
     public class Renderer
     {
-        public static readonly int WIDTH_PER_PLAYER = 15;
+        public static readonly int WIDTH_PER_PLAYER = 16;
         public static Print PRINT = new Print();
         public static void RenderState(Game g)
         {
-            PRINT.CLR();
+            PRINT.CLR().R();
             if (g.trumps != null)
             {
                 PRINT.P("Trumfy: ").C(g.trumps);
@@ -18,7 +18,9 @@ namespace ProjektLS22
                     PRINT.DG().P("(z lidu)").R();
                 PRINT.P(" | ");
             }
-            PRINT.P(g.status).NL().NL();
+            if (g.phase != Game.Phase.SCORE)
+                PRINT.P(g.status);
+            PRINT.NL().NL();
             switch (g.phase)
             {
                 case Game.Phase.CUT:
@@ -59,9 +61,7 @@ namespace ProjektLS22
                     }
                 case Game.Phase.STAKES:
                     {
-                        PRINT.NL();
-                        // print flekování
-                        PRINT.NL();
+                        PRINT.NL(2);
                         PrintPlayers(g, g.step <= 1);
                         if (g.players[g.activePlayer].controller.isHuman)
                         {
@@ -87,6 +87,13 @@ namespace ProjektLS22
                         }
                         break;
                     }
+                case Game.Phase.SCORE:
+                    {
+                        PRINT.S(9).F(ConsoleColor.Green).P(g.status);
+                        PRINT.NL(2);
+                        PrintPlayers(g, false);
+                        break;
+                    }
             }
             if (g.waitingForPlayer)
             {
@@ -107,27 +114,32 @@ namespace ProjektLS22
             if (g.cardShowing == Game.CardShowing.HUMAN)
                 return g.players[player].controller.isHuman;
             if (g.cardShowing == Game.CardShowing.ACTIVE_HUMAN)
-                return g.players[player].controller.isHuman && player == g.activePlayer;
+                return g.players[player].controller.isHuman && player == g.activePlayer && g.waitingForPlayer;
             return false;
         }
 
         static void PrintPlayers(Game g, bool seven)
         {
-            PRINT.G();
             for (int i = 0; i < 3; i++)
             {
+                PRINT.R();
+                bool offense = (g.dealer + 1) % 3 == i;
+                if (offense)
+                    PRINT.F(ConsoleColor.Red);
                 if (g.waitingForPlayer && g.activePlayer == i)
                 {
-                    PRINT.W().P($">{Utils.TranslatePlayer(i)}<", WIDTH_PER_PLAYER, true).G();
+                    if (!offense)
+                        PRINT.W();
+                    PRINT.P($">{Utils.TranslatePlayer(i)}< {g.players[i].score}", WIDTH_PER_PLAYER, true);
                 }
                 else
                 {
-                    PRINT.P($" {Utils.TranslatePlayer(i)}", WIDTH_PER_PLAYER, true);
+                    PRINT.P($" {Utils.TranslatePlayer(i)}  {g.players[i].score}", WIDTH_PER_PLAYER, true);
                 }
             }
             if (g.talon.Count > 0)
             {
-                PRINT.P(" Talon");
+                PRINT.R().P(" Talon");
             }
             PRINT.NL();
             for (int i = 0; i < 3; i++)
@@ -135,8 +147,8 @@ namespace ProjektLS22
                 bool visible = ShowHand(g, i);
                 PRINT.S(1);
                 int width = PrintHand(g.players[i].hand, visible, seven && i == g.activePlayer, g.cardShowing == Game.CardShowing.ALL);
-                PrintTricks(WIDTH_PER_PLAYER - 2 - width, g.players[i].discard.Count / 3, null);
-                PRINT.S(1);
+                PrintTricks(WIDTH_PER_PLAYER - 3 - width, g.players[i].discard.Count / 3, null);
+                PRINT.S(2);
             }
             if (g.talon.Count > 0)
             {

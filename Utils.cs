@@ -8,16 +8,16 @@ namespace ProjektLS22
     {
 
         public static Random rand = new Random();
-        public static void Shuffle(this List<Card> cards)
+        public static void Shuffle<T>(this List<T> list)
         {
-            int n = cards.Count;
+            int n = list.Count;
             while (n > 1)
             {
                 n--;
                 int k = rand.Next(n + 1);
-                Card c = cards[k];
-                cards[k] = cards[n];
-                cards[n] = c;
+                T c = list[k];
+                list[k] = list[n];
+                list[n] = c;
             }
         }
 
@@ -69,7 +69,7 @@ namespace ProjektLS22
         public static bool ValidTalon(List<Card> hand, int i, Card trumps, List<Card> trick)
         {
             Card c = hand[i];
-            return c != trumps && c.value.gameStrength < Value.DESET.gameStrength;
+            return c != trumps && !c.value.ten;
         }
 
         public static bool ValidTrump(List<Card> hand, int i, Card trumps, List<Card> trick)
