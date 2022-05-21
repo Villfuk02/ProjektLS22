@@ -274,6 +274,10 @@ public class Game
                     {
                         Card c = players[activePlayer].hand[choice];
                         players[activePlayer].hand.RemoveAt(choice);
+                        if (c.value.marriage && players[activePlayer].hand.Exists((Card d) => d.suit == c.suit && d.value.marriage))
+                        {
+                            players[activePlayer].marriages.Add(c);
+                        }
                         trick.Add(c);
                         NextPlayer();
                         if (trick.Count != 3)
@@ -340,17 +344,16 @@ public class Game
         }
         int offense = CountPoints((dealer + 1) % 3);
         int defense = CountPoints(dealer) + CountPoints((dealer + 2) % 3);
-        int value = trumps.suit == Suit.ČERVENÝ ? 2 : 1;
 
         if (offense > defense)
         {
-            players[(dealer + 1) % 3].score += value;
+            players[(dealer + 1) % 3].score++;
             Step($"Aktér vyhrál {offense}:{defense}!", 4000);
         }
         else
         {
-            players[dealer].score += value;
-            players[(dealer + 2) % 3].score += value;
+            players[dealer].score++;
+            players[(dealer + 2) % 3].score++;
             Step($"Obrana vyhrála {defense}:{offense}!", 4000);
         }
     }
@@ -362,6 +365,7 @@ public class Game
         {
             pts += 10;
         }
+        pts += players[player].marriages.Count * 20;
         return pts;
     }
 
@@ -375,6 +379,7 @@ public class Game
             for (int i = 0; i < 3; i++)
             {
                 collect.Add(players[i].discard);
+                players[i].marriages.Clear();
             }
             collect.Add(talon);
             collect.Shuffle();

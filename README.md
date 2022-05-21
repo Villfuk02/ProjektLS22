@@ -9,8 +9,5 @@ uhhhh
 - naivní AI
 - pravděpodobnostní minmax
 - pravidla
-- game over
-
-## rozdíly
-
-- hlášky nezůstávají u vlastníka
+- speed
+- dokumentace AAAAAAAAAAAAAAA

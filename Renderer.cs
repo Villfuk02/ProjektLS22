@@ -29,33 +29,34 @@ namespace ProjektLS22
                         List<Card> upper = g.deck.GetRange(0, 32 - g.info);
                         if (g.step <= 1)
                         {
-                            PRINT.C(lower, Hidden(g)).C(upper, Hidden(g)).NL(5);
+                            PRINT.C(lower, Hidden(g)).C(upper, Hidden(g)).NL(2);
                         }
                         else if (g.step == 2)
                         {
-                            PRINT.C(lower, Hidden(g)).S(1).C(upper, Hidden(g)).NL(4);
+                            PRINT.C(lower, Hidden(g)).S(1).C(upper, Hidden(g)).NL(2);
                         }
                         else if (g.step == 3)
                         {
-                            PRINT.S(lower.Count + 1).C(upper, Hidden(g)).NL().C(lower, Hidden(g)).NL(4);
+                            PRINT.S(lower.Count + 1).C(upper, Hidden(g)).NL().C(lower, Hidden(g)).NL();
                         }
                         else if (g.step == 4)
                         {
-                            PRINT.C(upper, Hidden(g)).NL().S(upper.Count + 1).C(lower, Hidden(g)).NL(3);
+                            PRINT.C(upper, Hidden(g)).NL().S(upper.Count + 1).C(lower, Hidden(g)).NL();
                         }
                         else if (g.step == 5)
                         {
-                            PRINT.C(upper, Hidden(g)).S(1).C(lower, Hidden(g)).NL(4);
+                            PRINT.C(upper, Hidden(g)).S(1).C(lower, Hidden(g)).NL(2);
                         }
                         else if (g.step == 6)
                         {
-                            PRINT.C(upper, Hidden(g)).C(lower, Hidden(g)).NL(4);
+                            PRINT.C(upper, Hidden(g)).C(lower, Hidden(g)).NL(2);
                         }
+                        PrintPlayers(g, false);
                         break;
                     }
                 case Game.Phase.DEAL:
                     {
-                        PRINT.C(g.deck, Hidden(g)).NL().NL();
+                        PRINT.C(g.deck, Hidden(g)).NL(2);
                         PrintPlayers(g, true);
                         break;
                     }
@@ -91,6 +92,12 @@ namespace ProjektLS22
                     {
                         PRINT.S(9).F(ConsoleColor.Green).P(g.status);
                         PRINT.NL(2);
+                        PrintPlayers(g, false);
+                        break;
+                    }
+                case Game.Phase.COLLECT:
+                    {
+                        PRINT.C(g.deck, Hidden(g)).NL(2);
                         PrintPlayers(g, false);
                         break;
                     }
@@ -147,18 +154,18 @@ namespace ProjektLS22
                 bool visible = ShowHand(g, i);
                 PRINT.S(1);
                 int width = PrintHand(g.players[i].hand, visible, seven && i == g.activePlayer, g.cardShowing == Game.CardShowing.ALL);
-                PrintTricks(WIDTH_PER_PLAYER - 3 - width, g.players[i].discard.Count / 3, null);
+                PrintTricks(WIDTH_PER_PLAYER - 3 - width, g.players[i].discard.Count / 3, g.players[i].marriages);
                 PRINT.S(2);
             }
             if (g.talon.Count > 0)
             {
                 PRINT.S(1);
-                PrintHand(g.talon, Hidden(g), false, g.cardShowing == Game.CardShowing.ALL);
+                PrintHand(g.talon, Hidden(g), false);
             }
             PRINT.NL();
         }
 
-        public static int PrintHand(List<Card> hand, bool visible, bool seven, bool all)
+        public static int PrintHand(List<Card> hand, bool visible, bool seven, bool all = false)
         {
             if (seven && hand.Count > 7)
             {
@@ -174,10 +181,16 @@ namespace ProjektLS22
 
         public static void PrintTricks(int space, int tricks, List<Card> marriages)
         {
+            PRINT.S(space - marriages.Count - 1);
+            PrintHand(marriages, true, false);
             if (tricks > 0)
-                PRINT.S(space - 1).B(ConsoleColor.Blue).W().D(tricks).R();
+            {
+                PRINT.B(ConsoleColor.Blue).W().D(tricks).R();
+            }
             else
-                PRINT.S(space);
+            {
+                PRINT.S(1);
+            }
         }
 
         public static void PrintCardSelection(Game g, Func<List<Card>, int, Card, List<Card>, bool> validator)
@@ -258,7 +271,9 @@ namespace ProjektLS22
             //SPACING
             public Print S(int amt)
             {
-                return P(new string(' ', amt));
+                if (amt > 0)
+                    return P(new string(' ', amt));
+                return this;
             }
             //BACKGROUND COLOR
             public Print B(ConsoleColor c)

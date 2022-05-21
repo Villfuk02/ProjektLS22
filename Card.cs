@@ -13,9 +13,14 @@ public class Card
     {
         if (obj is Card)
         {
-            return (this.suit == ((Card)obj).suit && this.value == ((Card)obj).value);
+            return (suit == ((Card)obj).suit && value == ((Card)obj).value);
         }
         return base.Equals(obj);
+    }
+
+    public override int GetHashCode()
+    {
+        return suit.GetHashCode() ^ value.GetHashCode();
     }
 }
 
@@ -48,6 +53,7 @@ public class Value
         this.gameStrength = gameStrength;
         this.standardStrength = standardStrength;
         this.ten = ten;
+        this.marriage = marriage;
     }
     public static readonly Value SEDM = new Value('7', 7, 7, false, false);
     public static readonly Value OSM = new Value('8', 8, 8, false, false);
