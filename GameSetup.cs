@@ -27,7 +27,7 @@ namespace ProjektLS22
 
             for (int i = 0; i < 3; i++)
             {
-                players[i] = PlayerController.HUMAN;
+                players[i] = PlayerController.TYPES[i % PlayerController.TYPES.Count];
             }
             while (state != State.Finished)
             {

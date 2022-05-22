@@ -198,7 +198,7 @@ namespace ProjektLS22
             PRINT.S(1);
             for (int i = 0; i < 3; i++)
             {
-                if (g.activePlayer == i)
+                if (g.activePlayer == i && g.players[i].controller.isHuman)
                 {
                     PRINT.DG();
                     for (int j = 0; j < WIDTH_PER_PLAYER; j++)

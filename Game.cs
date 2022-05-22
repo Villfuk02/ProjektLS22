@@ -84,8 +84,13 @@ public class Game
 
     public void NextStep()
     {
+        int lastStep = step;
+        Phase lastPhase = phase;
         DoStep();
-        Renderer.RenderState(this);
+        if (lastPhase != phase || lastStep != step)
+        {
+            Renderer.RenderState(this);
+        }
         if (!fast && wait > 0)
             Utils.Wait(wait);
     }
@@ -125,6 +130,11 @@ public class Game
     void Step()
     {
         Step(0);
+    }
+
+    void Step(Phase nextPhase, int nextStep)
+    {
+        Step(status, 0, nextPhase, nextStep);
     }
 
 
@@ -204,7 +214,7 @@ public class Game
             case 0:
                 {
                     waitingForPlayer = true;
-                    Step($"{Utils.TranslatePlayer(activePlayer)} vybírá trumfy...");
+                    Step($"{Utils.TranslatePlayer(activePlayer)} vybírá trumfy...", 200);
                     break;
                 }
             case 1:
@@ -231,7 +241,7 @@ public class Game
                     {
                         Utils.SortCards(ref players[i].hand, trumps.suit, false);
                     }
-                    Step($"{Utils.TranslatePlayer(activePlayer)} odhazuje do talonu...");
+                    Step($"{Utils.TranslatePlayer(activePlayer)} odhazuje do talonu...", 200);
                     break;
                 }
             case 3:
@@ -245,6 +255,8 @@ public class Game
                         talon.Add(c);
                         if (talon.Count == 2)
                             Step($"{Utils.TranslatePlayer(activePlayer)} odhodil do talonu");
+                        else
+                            Step(Phase.STAKES, 2);
                     }
                     break;
                 }
@@ -282,17 +294,22 @@ public class Game
                         NextPlayer();
                         if (trick.Count != 3)
                         {
-                            Step($"Na řadě je {Utils.TranslatePlayer(activePlayer)}...", 0, Phase.GAME, 1);
+                            Step();
                         }
                         else
                         {
                             waitingForPlayer = false;
-                            Step();
+                            Step(Phase.GAME, 3);
                         }
                     }
                     break;
                 }
             case 2:
+                {
+                    Step($"Na řadě je {Utils.TranslatePlayer(activePlayer)}...", 200, Phase.GAME, 1);
+                    break;
+                }
+            case 3:
                 {
                     int max = 0;
                     int winner = -1;
@@ -310,7 +327,7 @@ public class Game
                     Step($"{Utils.TranslatePlayer(winner)} bere štych...", 4000);
                     break;
                 }
-            case 3:
+            case 4:
                 {
                     players[info].discard.AddRange(trick);
                     trick.Clear();

@@ -20,12 +20,12 @@ namespace ProjektLS22
             }
         }
         public static readonly Type HUMAN = new Type(" Člověk ", () => new HumanPlayerController());
+        public static readonly Type RANDOM = new Type("RandomAI", () => new RandomAI());
         public bool isHuman = false;
         public Player player;
         public virtual void GetOptions(Game g)
         {
-            Renderer.PRINT.P($"{Utils.TranslatePlayer(g.activePlayer)} is thinking...");
-            Utils.Wait(1000);
+            Renderer.PRINT.P($"{Utils.TranslatePlayer(g.activePlayer)} přemýšlí...");
         }
         public abstract int ChooseTrumps(Game g);
 
