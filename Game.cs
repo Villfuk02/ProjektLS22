@@ -7,7 +7,7 @@ using ProjektLS22;
 
 public class Game
 {
-    public bool fast;
+    public int simulate;
     public enum Phase { INIT, CUT, DEAL, STAKES, GAME, SCORE, COLLECT };
 
     public Phase phase = Phase.INIT;
@@ -28,9 +28,9 @@ public class Game
     int wait = 0;
 
     public int info = 0;
-    public Game(PlayerController.Type[] playerTypes, bool fast)
+    public Game(PlayerController.Type[] playerTypes, int simulate)
     {
-        this.fast = fast;
+        this.simulate = simulate;
         int humans = 0;
         for (int i = 0; i < 3; i++)
         {
@@ -87,12 +87,32 @@ public class Game
         int lastStep = step;
         Phase lastPhase = phase;
         DoStep();
-        if (lastPhase != phase || lastStep != step)
+        if (simulate > 0)
         {
-            Renderer.RenderState(this);
+            if (phase == Phase.COLLECT && step == 0)
+            {
+                simulate--;
+                Renderer.PRINT.P($"Zbývá {simulate} her |", 17, false);
+                for (int i = 0; i < 3; i++)
+                {
+                    Renderer.PRINT.P($" {Utils.TranslatePlayer(i)}: ", 9, true).P($"{players[i].score} |", 7, false);
+                }
+                Renderer.PRINT.NL();
+            }
         }
-        if (!fast && wait > 0)
-            Utils.Wait(wait);
+        else if (simulate == 0)
+        {
+            return;
+        }
+        if (simulate == -1 || (waitingForPlayer && players[activePlayer].controller.isHuman))
+        {
+            if (lastPhase != phase || lastStep != step)
+            {
+                Renderer.RenderState(this);
+            }
+            if (wait > 0)
+                Utils.Wait(wait);
+        }
     }
 
     void Step(string status, int wait, Phase nextPhase, int nextStep)

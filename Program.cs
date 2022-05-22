@@ -10,10 +10,11 @@ namespace ProjektLS22
             while (true)
             {
                 Init();
-                while (true)
+                while (g.simulate != 0)
                 {
                     g.NextStep();
                 }
+                Console.ReadKey();
             }
         }
 

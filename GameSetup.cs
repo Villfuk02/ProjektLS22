@@ -10,17 +10,15 @@ namespace ProjektLS22
         State state = State.Menu;
         InputHandler menuHandler = new InputHandler();
         InputHandler rulesHandler = new InputHandler();
-        public static readonly int[] CASH_OPTIONS = new int[] { 20, 50, 100, 200, 500, 1000 };
-        public int cash_selected = 2;
-        bool fast = false;
+        public static readonly int[] MODE_OPTIONS = new int[] { -1, 9, 99, 999, 9999, 99999 };
+        public int mode_selected = 0;
 
         public GameSetup()
         {
             menuHandler.RegisterOption('S', () => { state = State.Finished; });
-            menuHandler.RegisterOption('P', () => { state = State.Rules; });
             menuHandler.RegisterParametricOption("JFK", ChangeAI);
-            //debug only
-            menuHandler.RegisterOption('X', () => { fast = true; state = State.Finished; });
+            menuHandler.RegisterOption('P', () => { state = State.Rules; });
+            menuHandler.RegisterOption('M', ChangeMode);
 
             rulesHandler.RegisterOption('S', () => { state = State.Finished; });
             rulesHandler.RegisterOption('Z', () => { state = State.Menu; });
@@ -62,7 +60,15 @@ namespace ProjektLS22
             switch (state)
             {
                 case State.Menu:
-                    Renderer.PRINT.G().P("| ").H("Start | Změň AI ").H("Jardy, ").H("Franty nebo ").H("Karla | ").H("Pravidla |");
+                    Renderer.PRINT.G().P("| ").H("Start | Změň AI ").H("Jardy, ").H("Franty nebo ").H("Karla | ").H("Pravidla | ").H("Mód: ");
+                    if (MODE_OPTIONS[mode_selected] == -1)
+                    {
+                        Renderer.PRINT.P("normální |");
+                    }
+                    else
+                    {
+                        Renderer.PRINT.P($"simulace {MODE_OPTIONS[mode_selected]} her |");
+                    }
                     break;
                 case State.Rules:
                     Renderer.PRINT.G().P("| ").H("Start | ").H("Zpět do menu |");
@@ -77,9 +83,15 @@ namespace ProjektLS22
             players[player] = PlayerController.TYPES[a];
         }
 
+        void ChangeMode()
+        {
+            mode_selected = (mode_selected + 1) % MODE_OPTIONS.Length;
+        }
+
         public Game NewGame()
         {
-            return new Game(players, fast);
+            Renderer.PRINT.CLR().R();
+            return new Game(players, MODE_OPTIONS[mode_selected]);
         }
     }
 }
