@@ -130,6 +130,7 @@ namespace ProjektLS22
             for (int i = 0; i < 3; i++)
             {
                 PRINT.R();
+                Player p = g.players[i];
                 bool offense = (g.dealer + 1) % 3 == i;
                 if (offense)
                     PRINT.F(ConsoleColor.Red);
@@ -137,11 +138,11 @@ namespace ProjektLS22
                 {
                     if (!offense)
                         PRINT.W();
-                    PRINT.P($">{Utils.TranslatePlayer(i)}< {g.players[i].score}", WIDTH_PER_PLAYER, true);
+                    PRINT.P($">{Utils.TranslatePlayer(i)}< {p.offense_wins + p.defense_wins}", WIDTH_PER_PLAYER, true);
                 }
                 else
                 {
-                    PRINT.P($" {Utils.TranslatePlayer(i)}  {g.players[i].score}", WIDTH_PER_PLAYER, true);
+                    PRINT.P($" {Utils.TranslatePlayer(i)}  {p.offense_wins + p.defense_wins}", WIDTH_PER_PLAYER, true);
                 }
             }
             if (g.talon.Count > 0)

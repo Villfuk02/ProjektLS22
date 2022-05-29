@@ -92,10 +92,10 @@ public class Game
             if (phase == Phase.COLLECT && step == 0)
             {
                 simulate--;
-                Renderer.PRINT.P($"Zbývá {simulate} her |", 17, false);
+                Renderer.PRINT.P($"Zbývá {simulate} her | ", 18, false);
                 for (int i = 0; i < 3; i++)
                 {
-                    Renderer.PRINT.P($" {Utils.TranslatePlayer(i)}: ", 9, true).P($"{players[i].score} |", 7, false);
+                    Renderer.PRINT.P(Utils.TranslatePlayer(i), 1, true).P(':').P($" o {players[i].offense_wins},", 9, false).P($" d {players[i].defense_wins},", 9, false).P($" t {players[i].offense_wins + players[i].defense_wins} | ", 11, false);
                 }
                 Renderer.PRINT.NL();
             }
@@ -384,13 +384,13 @@ public class Game
 
         if (offense > defense)
         {
-            players[(dealer + 1) % 3].score++;
+            players[(dealer + 1) % 3].offense_wins++;
             Step($"Aktér vyhrál {offense}:{defense}!", 4000);
         }
         else
         {
-            players[dealer].score++;
-            players[(dealer + 2) % 3].score++;
+            players[dealer].defense_wins++;
+            players[(dealer + 2) % 3].defense_wins++;
             Step($"Obrana vyhrála {defense}:{offense}!", 4000);
         }
     }
