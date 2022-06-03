@@ -4,7 +4,8 @@ uhhhh
 
 ## TODO
 
-- naivní AI
+- lepší AI
 - pravděpodobnostní minmax
+- refactoring (make bots unable to modify game)
 - pravidla
 - dokumentace AAAAAAAAAAAAAAA

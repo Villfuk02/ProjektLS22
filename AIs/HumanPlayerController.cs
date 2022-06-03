@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace ProjektLS22
 {
@@ -10,23 +11,23 @@ namespace ProjektLS22
         {
             isHuman = true;
         }
-        public override void GetOptions(Game g)
+        public override void GetOptions(Game.Phase phase, int step, Card trumps, List<Card> trick)
         {
-            Renderer.PRINT.P($"{Utils.TranslatePlayer(g.activePlayer)}: ");
-            switch (g.phase)
+            Renderer.PRINT.P($"{Utils.TranslatePlayer(player.index)}: ");
+            switch (phase)
             {
                 case Game.Phase.STAKES:
                     {
-                        if (g.step == 1)
+                        if (step == 1)
                         {
                             Renderer.PRINT.P("| Vyber trumf ");
-                            Utils.PrintValidChoices(player.hand, g.trumps, g.trick, Utils.ValidTrump);
+                            Utils.PrintValidChoices(player.hand, trumps, trick, Utils.ValidTrump);
                             Renderer.PRINT.P(" | Vyber z ").H("Lidu |");
                         }
-                        else if (g.step == 3)
+                        else if (step == 3)
                         {
                             Renderer.PRINT.P("| Odhoď do talonu ");
-                            Utils.PrintValidChoices(player.hand, g.trumps, g.trick, Utils.ValidTalon);
+                            Utils.PrintValidChoices(player.hand, trumps, trick, Utils.ValidTalon);
                             Renderer.PRINT.P(" |");
                         }
                         break;
@@ -34,14 +35,14 @@ namespace ProjektLS22
                 case Game.Phase.GAME:
                     {
                         Renderer.PRINT.P("| Zahraj kartu ");
-                        Utils.PrintValidChoices(player.hand, g.trumps, g.trick, Utils.ValidPlay);
+                        Utils.PrintValidChoices(player.hand, trumps, trick, Utils.ValidPlay);
                         Renderer.PRINT.P(" |");
                         break;
                     }
             }
         }
 
-        public override int ChooseTrumps(Game g)
+        public override int ChooseTrumps()
         {
             ConsoleKeyInfo k = Console.ReadKey(true);
             if (k.Key == ConsoleKey.L)
@@ -52,12 +53,12 @@ namespace ProjektLS22
             return choice;
         }
 
-        public override int ChooseTalon(Game g)
+        public override int ChooseTalon(Card trumps, List<Card> talon)
         {
             ConsoleKeyInfo k = Console.ReadKey(true);
             return cardChoiceLetters.IndexOf(char.ToUpper(k.KeyChar));
         }
-        public override int ChoosePlay(Game g)
+        public override int ChoosePlay(List<Card> trick, Card trumps)
         {
             ConsoleKeyInfo k = Console.ReadKey(true);
             return cardChoiceLetters.IndexOf(char.ToUpper(k.KeyChar));

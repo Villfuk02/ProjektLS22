@@ -14,7 +14,7 @@ namespace ProjektLS22
             if (g.trumps != null)
             {
                 PRINT.P("Trumfy: ").C(g.trumps);
-                if (g.zLidu)
+                if (g.fromPeople)
                     PRINT.DG().P("(z lidu)").R();
                 PRINT.P(" | ");
             }
@@ -105,7 +105,7 @@ namespace ProjektLS22
             if (g.waitingForPlayer)
             {
                 PRINT.NL();
-                g.players[g.activePlayer].controller.GetOptions(g);
+                g.players[g.activePlayer].controller.GetOptions(g.phase, g.step, g.trumps, g.trick);
             }
         }
 

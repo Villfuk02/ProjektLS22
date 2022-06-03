@@ -21,15 +21,19 @@ namespace ProjektLS22
         }
         public static readonly Type HUMAN = new Type(" Člověk ", () => new HumanPlayerController());
         public static readonly Type RANDOM = new Type("RandomAI", () => new RandomAI());
+        public static readonly Type NAIVE = new Type("NaiveAI", () => new NaiveAI());
         public bool isHuman = false;
         public Player player;
-        public virtual void GetOptions(Game g)
+        public virtual void GetOptions(Game.Phase phase, int step, Card trumps, List<Card> trick)
         {
-            Renderer.PRINT.P($"{Utils.TranslatePlayer(g.activePlayer)} přemýšlí...");
+            Renderer.PRINT.P($"{Utils.TranslatePlayer(player.index)} přemýšlí...");
         }
-        public abstract int ChooseTrumps(Game g);
-
-        public abstract int ChooseTalon(Game g);
-        public abstract int ChoosePlay(Game g);
+        public virtual void NewRound(int dealer) { }
+        public virtual void FirstTrickStart(Card trumps, bool fromPeople, List<Card> talonIfKnown) { }
+        public virtual void PlaysCard(int p, Card c, List<Card> trick) { }
+        public virtual void TakesTrick(int p, List<Card> trick) { }
+        public abstract int ChooseTrumps();
+        public abstract int ChooseTalon(Card trumps, List<Card> talon);
+        public abstract int ChoosePlay(List<Card> trick, Card trumps);
     }
 }

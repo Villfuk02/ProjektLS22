@@ -8,6 +8,7 @@ using ProjektLS22;
 public class Game
 {
     public int simulate;
+    public int writeEvery;
     public enum Phase { INIT, CUT, DEAL, STAKES, GAME, SCORE, COLLECT };
 
     public Phase phase = Phase.INIT;
@@ -17,7 +18,7 @@ public class Game
     public List<Card> talon = new List<Card>();
     public List<Card> trick = new List<Card>();
     public Card trumps;
-    public bool zLidu;
+    public bool fromPeople;
     public int activePlayer = -1;
     public int dealer = 0;
     public int step = 0;
@@ -31,6 +32,7 @@ public class Game
     public Game(PlayerController.Type[] playerTypes, int simulate)
     {
         this.simulate = simulate;
+        writeEvery = (simulate / 100) + 1;
         int humans = 0;
         for (int i = 0; i < 3; i++)
         {
@@ -92,12 +94,15 @@ public class Game
             if (phase == Phase.COLLECT && step == 0)
             {
                 simulate--;
-                Renderer.PRINT.P($"Zbývá {simulate} her | ", 18, false);
-                for (int i = 0; i < 3; i++)
+                if (simulate % writeEvery == 0)
                 {
-                    Renderer.PRINT.P(Utils.TranslatePlayer(i), 1, true).P(':').P($" o {players[i].offense_wins},", 9, false).P($" d {players[i].defense_wins},", 9, false).P($" t {players[i].offense_wins + players[i].defense_wins} | ", 11, false);
+                    Renderer.PRINT.P($"Zbývá {simulate} her | ", 18, false);
+                    for (int i = 0; i < 3; i++)
+                    {
+                        Renderer.PRINT.P(Utils.TranslatePlayer(i), 1, true).P(':').P($" a {players[i].offense_wins},", 9, false).P($" o {players[i].defense_wins},", 9, false).P($" C {players[i].offense_wins + players[i].defense_wins} | ", 11, false);
+                    }
+                    Renderer.PRINT.NL();
                 }
-                Renderer.PRINT.NL();
             }
         }
         else if (simulate == 0)
@@ -174,6 +179,10 @@ public class Game
     {
         if (step == 0)
         {
+            foreach (Player p in players)
+            {
+                p.controller.NewRound(dealer);
+            }
             int cut = Utils.rand.Next(2, 30);
             List<Card> n = deck.GetRange(cut, 32 - cut);
             n.AddRange(deck.GetRange(0, cut));
@@ -239,13 +248,13 @@ public class Game
                 }
             case 1:
                 {
-                    int choice = players[activePlayer].controller.ChooseTrumps(this);
+                    int choice = players[activePlayer].controller.ChooseTrumps();
                     if (choice >= -1 && choice < 7)
                     {
                         if (choice == -1)
                         {
                             trumps = players[activePlayer].hand[Utils.rand.Next(7, 12)];
-                            zLidu = true;
+                            fromPeople = true;
                         }
                         else
                         {
@@ -266,7 +275,7 @@ public class Game
                 }
             case 3:
                 {
-                    int choice = players[activePlayer].controller.ChooseTalon(this);
+                    int choice = players[activePlayer].controller.ChooseTalon(trumps, talon);
                     if (choice >= 0 && choice < players[activePlayer].hand.Count
                         && Utils.ValidTalon(players[activePlayer].hand, choice, trumps, trick))
                     {
@@ -282,6 +291,10 @@ public class Game
                 }
             case 4:
                 {
+                    foreach (Player p in players)
+                    {
+                        p.controller.FirstTrickStart(trumps, fromPeople, p.index == activePlayer ? talon : null);
+                    }
                     Step(Phase.GAME);
                     break;
                 }
@@ -300,7 +313,7 @@ public class Game
                 }
             case 1:
                 {
-                    int choice = players[activePlayer].controller.ChooseTalon(this);
+                    int choice = players[activePlayer].controller.ChoosePlay(trick, trumps);
                     if (choice >= 0 && choice < players[activePlayer].hand.Count
                         && Utils.ValidPlay(players[activePlayer].hand, choice, trumps, trick))
                     {
@@ -309,6 +322,10 @@ public class Game
                         if (c.value.marriage && players[activePlayer].hand.Exists((Card d) => d.suit == c.suit && d.value.marriage))
                         {
                             players[activePlayer].marriages.Add(c);
+                        }
+                        foreach (Player p in players)
+                        {
+                            p.controller.PlaysCard(activePlayer, c, trick);
                         }
                         trick.Add(c);
                         NextPlayer();
@@ -342,6 +359,10 @@ public class Game
                             max = value;
                             winner = (activePlayer + i) % 3;
                         }
+                    }
+                    foreach (Player p in players)
+                    {
+                        p.controller.TakesTrick(winner, trick);
                     }
                     info = winner;
                     Step($"{Utils.TranslatePlayer(winner)} bere štych...", 4000);
@@ -411,7 +432,7 @@ public class Game
         if (step == 0)
         {
             trumps = null;
-            zLidu = false;
+            fromPeople = false;
             List<List<Card>> collect = new List<List<Card>>();
             for (int i = 0; i < 3; i++)
             {

@@ -58,10 +58,10 @@ public class Value
     public static readonly Value SEDM = new Value('7', 7, 7, false, false);
     public static readonly Value OSM = new Value('8', 8, 8, false, false);
     public static readonly Value DEVĚT = new Value('9', 9, 9, false, false);
-    public static readonly Value DESET = new Value('X', 15, 10, true, false);
+    public static readonly Value DESET = new Value('X', 20, 10, true, false);
     public static readonly Value SPODEK = new Value('J', 11, 11, false, false);
     public static readonly Value SVRŠEK = new Value('Q', 12, 12, false, true);
     public static readonly Value KRÁL = new Value('K', 13, 13, false, true);
-    public static readonly Value ESO = new Value('A', 20, 20, true, false);
+    public static readonly Value ESO = new Value('A', 30, 30, true, false);
     public static readonly Value[] ALL = new Value[] { SEDM, OSM, DEVĚT, DESET, SPODEK, SVRŠEK, KRÁL, ESO };
 }
