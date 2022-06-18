@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using System.Threading;
 
 namespace ProjektLS22
@@ -133,6 +135,30 @@ namespace ProjektLS22
                 }
             }
             Renderer.PRINT.H();
+        }
+
+        public static int TrickWinner(List<Card> trick, Suit trumps)
+        {
+            return trick.Select((c, i) => (((c.suit == trumps ? 200 : (c.suit == trick[0].suit ? 100 : 0)) + c.value.gameStrength), i)).Max().i;
+        }
+
+        public static string FormatCards(IEnumerable<Card> s, Suit trumps)
+        {
+            List<Card> l = new List<Card>(s);
+            SortCards(ref l, trumps, false);
+            StringBuilder sb = new StringBuilder();
+            Suit lastSuit = null;
+            foreach (Card c in s)
+            {
+                if (c.suit != lastSuit)
+                {
+                    lastSuit = c.suit;
+                    sb.Append(' ');
+                    sb.Append(c.suit.name[0]);
+                }
+                sb.Append(c.value.symbol);
+            }
+            return sb.ToString();
         }
     }
 }

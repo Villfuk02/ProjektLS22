@@ -104,7 +104,7 @@ namespace ProjektLS22
             }
             if (g.waitingForPlayer)
             {
-                PRINT.NL();
+                PRINT.R().NL();
                 g.players[g.activePlayer].controller.GetOptions(g.phase, g.step, g.trumps, g.trick);
             }
         }

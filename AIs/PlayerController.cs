@@ -22,6 +22,7 @@ namespace ProjektLS22
         public static readonly Type HUMAN = new Type(" Člověk ", () => new HumanPlayerController());
         public static readonly Type RANDOM = new Type("RandomAI", () => new RandomAI());
         public static readonly Type NAIVE = new Type("NaiveAI", () => new NaiveAI());
+        public static readonly Type SMART = new Type("SmartAI", () => new SmartAI());
         public bool isHuman = false;
         public Player player;
         public virtual void GetOptions(Game.Phase phase, int step, Card trumps, List<Card> trick)
@@ -30,7 +31,7 @@ namespace ProjektLS22
         }
         public virtual void NewRound(int dealer) { }
         public virtual void FirstTrickStart(Card trumps, bool fromPeople, List<Card> talonIfKnown) { }
-        public virtual void PlaysCard(int p, Card c, List<Card> trick) { }
+        public virtual void PlaysCard(int p, Card c, List<Card> trick, Card trumps, bool marriage) { }
         public virtual void TakesTrick(int p, List<Card> trick) { }
         public abstract int ChooseTrumps();
         public abstract int ChooseTalon(Card trumps, List<Card> talon);

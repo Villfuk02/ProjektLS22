@@ -55,7 +55,7 @@ namespace ProjektLS22
             }
             suits[trumps.suit].trumps = true;
         }
-        public override void PlaysCard(int p, Card c, List<Card> trick)
+        public override void PlaysCard(int p, Card c, List<Card> trick, Card trumps, bool marriage)
         {
             if (p == player.index)
             {

@@ -319,15 +319,17 @@ public class Game
                     {
                         Card c = players[activePlayer].hand[choice];
                         players[activePlayer].hand.RemoveAt(choice);
+                        bool marriage = false;
                         if (c.value.marriage && players[activePlayer].hand.Exists((Card d) => d.suit == c.suit && d.value.marriage))
                         {
+                            marriage = true;
                             players[activePlayer].marriages.Add(c);
                         }
+                        trick.Add(c);
                         foreach (Player p in players)
                         {
-                            p.controller.PlaysCard(activePlayer, c, trick);
+                            p.controller.PlaysCard(activePlayer, c, trick, trumps, marriage);
                         }
-                        trick.Add(c);
                         NextPlayer();
                         if (trick.Count != 3)
                         {
@@ -348,18 +350,7 @@ public class Game
                 }
             case 3:
                 {
-                    int max = 0;
-                    int winner = -1;
-                    for (int i = 0; i < trick.Count; i++)
-                    {
-                        Card c = trick[i];
-                        int value = (c.suit == trumps.suit ? 200 : (c.suit == trick[0].suit ? 100 : 0)) + c.value.gameStrength;
-                        if (value > max)
-                        {
-                            max = value;
-                            winner = (activePlayer + i) % 3;
-                        }
-                    }
+                    int winner = (activePlayer + Utils.TrickWinner(trick, trumps.suit)) % 3;
                     foreach (Player p in players)
                     {
                         p.controller.TakesTrick(winner, trick);
