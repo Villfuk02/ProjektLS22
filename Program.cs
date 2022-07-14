@@ -14,7 +14,7 @@ namespace ProjektLS22
                 {
                     g.NextStep();
                 }
-                Console.ReadKey();
+                Console.ReadLine();
             }
         }
 

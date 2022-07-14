@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading.Channels;
 using ProjektLS22;
 
 public class Game
@@ -42,13 +43,7 @@ public class Game
                 humans++;
         }
         cardShowing = humans == 0 ? CardShowing.ALL : (humans == 1 ? CardShowing.HUMAN : CardShowing.ACTIVE_HUMAN);
-        foreach (Suit s in Suit.ALL)
-        {
-            foreach (Value v in Value.ALL)
-            {
-                deck.Add(new Card(s, v));
-            }
-        }
+        deck = new List<Card>(Card.ALL);
         dealer = Utils.rand.Next(3);
         deck.Shuffle();
     }
@@ -293,7 +288,7 @@ public class Game
                 {
                     foreach (Player p in players)
                     {
-                        p.controller.FirstTrickStart(trumps, fromPeople, p.index == activePlayer ? talon : null);
+                        p.controller.FirstTrickStart(trumps, fromPeople, activePlayer, p.index == activePlayer ? talon : null);
                     }
                     Step(Phase.GAME);
                     break;

@@ -59,7 +59,7 @@ namespace ProjektLS22
                 secondCardEnemies = new int[] { 2 };
             }
         }
-        public override void FirstTrickStart(Card trumps, bool fromPeople, List<Card> talonIfKnown)
+        public override void FirstTrickStart(Card trumps, bool fromPeople, int offense, List<Card> talonIfKnown)
         {
             if (isOffense)
             {
@@ -129,9 +129,9 @@ namespace ProjektLS22
                     }
                     if (c.suit == trick[0].suit)
                     {
-                        if (best.suit != trick[0].suit)
+                        if (best.suit == trick[0].suit)
                         {
-                            if (c.value.gameStrength < trick[0].value.gameStrength)
+                            if (c.value.gameStrength < best.value.gameStrength)
                             {
                                 P(p).RemoveMatching((Card d) => d.suit == c.suit && d.value.gameStrength > best.value.gameStrength);
                             }

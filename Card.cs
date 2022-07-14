@@ -1,8 +1,14 @@
 using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using System.Threading.Channels;
+
 public class Card
 {
     public readonly Suit suit;
     public readonly Value value;
+    public readonly static List<Card> ALL = new List<Card>(Suit.ALL.SelectMany((s, i) => Value.ALL.Select((v, j) => new Card(s, v))));
     public Card(Suit suit, Value value)
     {
         this.suit = suit;

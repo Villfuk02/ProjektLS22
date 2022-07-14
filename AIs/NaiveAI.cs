@@ -22,7 +22,7 @@ namespace ProjektLS22
                 suits.Add(s, i);
             }
         }
-        public override void FirstTrickStart(Card trumps, bool fromPeople, List<Card> talonIfKnown)
+        public override void FirstTrickStart(Card trumps, bool fromPeople, int offense, List<Card> talonIfKnown)
         {
             foreach (Card c in player.hand)
             {

@@ -4,8 +4,11 @@ uhhhh
 
 ## TODO
 
-- lepší AI
-- pravděpodobnostní minmax
-- refactoring (make bots unable to modify game)
+- refactoring
+- optimize simulation
+- test simulation depth
+- finish simulation AI
+- make bots unable to modify game
+- make bots static?
 - pravidla
 - dokumentace AAAAAAAAAAAAAAA
