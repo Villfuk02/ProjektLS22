@@ -15,11 +15,33 @@ public class Card
         this.value = value;
     }
 
+    public bool SameSuitButLowerThan(Card compared)
+    {
+        return SameSuit(compared) && LowerThan(compared);
+    }
+    public bool SameSuit(Card compared)
+    {
+        return suit.HasCard(compared);
+    }
+
+    public bool LowerThan(Card compared)
+    {
+        return value.strength < compared.value.strength;
+    }
+    public Card GetPartner()
+    {
+        if (value.marriage)
+        {
+            return new Card(suit, value == Value.KRÁL ? Value.SVRŠEK : Value.KRÁL);
+        }
+        return null;
+    }
+
     public override bool Equals(Object obj)
     {
         if (obj is Card)
         {
-            return (suit == ((Card)obj).suit && value == ((Card)obj).value);
+            return (SameSuit((Card)obj) && value == ((Card)obj).value);
         }
         return base.Equals(obj);
     }
@@ -33,41 +55,43 @@ public class Card
 public class Suit
 {
     public readonly ConsoleColor color;
-    public readonly string name;
-    Suit(ConsoleColor color, string name)
+    public readonly char prefix;
+    Suit(ConsoleColor color, char prefix)
     {
         this.color = color;
-        this.name = name;
+        this.prefix = prefix;
     }
-    public static readonly Suit ŽALUDY = new Suit(ConsoleColor.Yellow, "žaludy");
-    public static readonly Suit ZELENÝ = new Suit(ConsoleColor.Green, "zelený");
-    public static readonly Suit ČERVENÝ = new Suit(ConsoleColor.Red, "červený");
-    public static readonly Suit KULE = new Suit(ConsoleColor.DarkYellow, "kule");
+    public bool HasCard(Card c)
+    {
+        return c.suit == this;
+    }
+    public static readonly Suit ŽALUDY = new Suit(ConsoleColor.Yellow, 'ž');
+    public static readonly Suit ZELENÝ = new Suit(ConsoleColor.Green, 'z');
+    public static readonly Suit ČERVENÝ = new Suit(ConsoleColor.Red, 'č');
+    public static readonly Suit KULE = new Suit(ConsoleColor.DarkYellow, 'k');
     public static readonly Suit[] ALL = new Suit[] { ŽALUDY, ZELENÝ, ČERVENÝ, KULE };
 }
 
 public class Value
 {
     public readonly char symbol;
-    public readonly int gameStrength;
-    public readonly int standardStrength;
+    public readonly int strength;
     public readonly bool ten;
     public readonly bool marriage;
-    Value(char symbol, int gameStrength, int standardStrength, bool ten, bool marriage)
+    Value(char symbol, int strength, bool ten, bool marriage)
     {
         this.symbol = symbol;
-        this.gameStrength = gameStrength;
-        this.standardStrength = standardStrength;
+        this.strength = strength;
         this.ten = ten;
         this.marriage = marriage;
     }
-    public static readonly Value SEDM = new Value('7', 7, 7, false, false);
-    public static readonly Value OSM = new Value('8', 8, 8, false, false);
-    public static readonly Value DEVĚT = new Value('9', 9, 9, false, false);
-    public static readonly Value DESET = new Value('X', 20, 10, true, false);
-    public static readonly Value SPODEK = new Value('J', 11, 11, false, false);
-    public static readonly Value SVRŠEK = new Value('Q', 12, 12, false, true);
-    public static readonly Value KRÁL = new Value('K', 13, 13, false, true);
-    public static readonly Value ESO = new Value('A', 30, 30, true, false);
+    public static readonly Value SEDM = new Value('7', 7, false, false);
+    public static readonly Value OSM = new Value('8', 8, false, false);
+    public static readonly Value DEVĚT = new Value('9', 9, false, false);
+    public static readonly Value DESET = new Value('X', 20, true, false);
+    public static readonly Value SPODEK = new Value('J', 11, false, false);
+    public static readonly Value SVRŠEK = new Value('Q', 12, false, true);
+    public static readonly Value KRÁL = new Value('K', 13, false, true);
+    public static readonly Value ESO = new Value('A', 30, true, false);
     public static readonly Value[] ALL = new Value[] { SEDM, OSM, DEVĚT, DESET, SPODEK, SVRŠEK, KRÁL, ESO };
 }

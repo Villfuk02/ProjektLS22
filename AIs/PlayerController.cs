@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using static ProjektLS22.Printer;
+using static ProjektLS22.Utils;
 
 namespace ProjektLS22
 {
@@ -21,14 +23,13 @@ namespace ProjektLS22
         }
         public static readonly Type HUMAN = new Type(" Člověk ", () => new HumanPlayerController());
         public static readonly Type RANDOM = new Type("RandomAI", () => new RandomAI());
-        public static readonly Type NAIVE = new Type("NaiveAI", () => new NaiveAI());
         public static readonly Type SMART = new Type("SmartAI", () => new SmartAI());
-        public static readonly Type SIMULATE = new Type("Simul-AI", () => new SimulationAI());
+        public static readonly Type SIMULATE = new Type("SimulAI4", () => new SimulationAI(4));
         public bool isHuman = false;
         public Player player;
         public virtual void GetOptions(Game.Phase phase, int step, Card trumps, List<Card> trick)
         {
-            Renderer.PRINT.P($"{Utils.TranslatePlayer(player.index)} přemýšlí...");
+            _printer.P($"{_playerNames[player.index]} přemýšlí...");
         }
         public virtual void NewRound(int dealer) { }
         public virtual void FirstTrickStart(Card trumps, bool fromPeople, int offense, List<Card> talonIfKnown) { }

@@ -1,43 +1,70 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
+using System.Reflection.Metadata;
+using System.Security.Cryptography.X509Certificates;
+using System.Threading.Channels;
 
 namespace ProjektLS22
 {
-    public abstract class PlayerModel
+    public abstract class PlayerModel : IEnumerable<Card>
     {
-        public abstract HashSet<Card> MayHave();
+        protected abstract HashSet<Card> MayHave();
+        public abstract void Remove(Card c);
+        public abstract void RemoveRange(IEnumerable<Card> cards);
+        public abstract void RemoveMatching(Predicate<Card> condition);
+        public abstract PlayerModel Copy();
+        public abstract void Reset();
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+        public IEnumerator<Card> GetEnumerator()
+        {
+            return MayHave().GetEnumerator();
+        }
+        public static implicit operator HashSet<Card>(PlayerModel p) => p.MayHave();
     }
+
 
     public class SpecificPlayerModel : PlayerModel
     {
-        HashSet<Card> mayHave = new HashSet<Card>();
+        HashSet<Card> set = new HashSet<Card>();
+        public SpecificPlayerModel() { }
+        SpecificPlayerModel(HashSet<Card> cards)
+        {
+            set = new HashSet<Card>(cards);
+        }
 
-        public void Reset()
+        public override void Reset()
         {
-            mayHave.Clear();
-            foreach (Suit s in Suit.ALL)
-            {
-                foreach (Value v in Value.ALL)
-                {
-                    mayHave.Add(new Card(s, v));
-                }
-            }
+            set = new HashSet<Card>(Card.ALL);
         }
-        public void Remove(Card card)
+        public void Set(IEnumerable<Card> cards)
         {
-            mayHave.Remove(card);
+            set = new HashSet<Card>(cards);
         }
-        public void RemoveRange(IEnumerable<Card> card)
+        public override PlayerModel Copy()
         {
-            mayHave.ExceptWith(card);
+            return new SpecificPlayerModel(this);
         }
-        public void RemoveMatching(Predicate<Card> condition)
+        public override void Remove(Card card)
         {
-            mayHave.RemoveWhere(condition);
+            set.Remove(card);
         }
-        public override HashSet<Card> MayHave()
+        public override void RemoveRange(IEnumerable<Card> cards)
         {
-            return mayHave;
+            set.ExceptWith(cards);
+        }
+        public override void RemoveMatching(Predicate<Card> condition)
+        {
+            set.RemoveWhere(condition);
+        }
+        protected override HashSet<Card> MayHave()
+        {
+            return set;
         }
     }
 
@@ -46,17 +73,44 @@ namespace ProjektLS22
         PlayerModel[] models;
         public JointPlayerModel(params PlayerModel[] m)
         {
-            models = m;
+            models = m.Where(m => m != null).ToArray();
         }
 
-        public override HashSet<Card> MayHave()
+        public override void Reset()
         {
-            HashSet<Card> mayHave = new HashSet<Card>();
-            foreach (var model in models)
+            foreach (PlayerModel m in models)
             {
-                mayHave.UnionWith(model.MayHave());
+                m.Reset();
             }
-            return mayHave;
+        }
+        public override PlayerModel Copy()
+        {
+            return new JointPlayerModel(models.Select(m => m.Copy()).ToArray());
+        }
+        public override void Remove(Card card)
+        {
+            foreach (PlayerModel m in models)
+            {
+                m.Remove(card);
+            }
+        }
+        public override void RemoveRange(IEnumerable<Card> cards)
+        {
+            foreach (PlayerModel m in models)
+            {
+                m.RemoveRange(cards);
+            }
+        }
+        public override void RemoveMatching(Predicate<Card> condition)
+        {
+            foreach (PlayerModel m in models)
+            {
+                m.RemoveMatching(condition);
+            }
+        }
+        protected override HashSet<Card> MayHave()
+        {
+            return new HashSet<Card>(models.Select(m => (IEnumerable<Card>)m).Aggregate((m, n) => m.Union(n)));
         }
     }
 }

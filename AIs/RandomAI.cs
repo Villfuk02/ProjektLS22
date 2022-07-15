@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using static ProjektLS22.Utils;
 
 namespace ProjektLS22
 {
@@ -7,16 +8,16 @@ namespace ProjektLS22
     {
         public override int ChooseTrumps()
         {
-            return Utils.rand.Next(-1, 7);
+            return _rand.Next(-1, 7);
         }
 
         public override int ChooseTalon(Card trumps, List<Card> talon)
         {
-            return Utils.rand.Next(player.hand.Count);
+            return _rand.Next(player.hand.Count);
         }
         public override int ChoosePlay(List<Card> trick, Card trumps)
         {
-            return Utils.rand.Next(player.hand.Count);
+            return _rand.Next(player.hand.Count);
         }
     }
 }

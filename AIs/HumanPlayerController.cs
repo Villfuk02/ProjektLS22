@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using static ProjektLS22.Printer;
+using static ProjektLS22.Utils;
 
 namespace ProjektLS22
 {
@@ -13,30 +15,30 @@ namespace ProjektLS22
         }
         public override void GetOptions(Game.Phase phase, int step, Card trumps, List<Card> trick)
         {
-            Renderer.PRINT.P($"{Utils.TranslatePlayer(player.index)}: ");
+            _printer.P($"{_playerNames[player.index]}: ");
             switch (phase)
             {
-                case Game.Phase.STAKES:
+                case Game.Phase.BEGIN:
                     {
                         if (step == 1)
                         {
-                            Renderer.PRINT.P("| Vyber trumf ");
-                            Utils.PrintValidChoices(player.hand, trumps, trick, Utils.ValidTrump);
-                            Renderer.PRINT.P(" | Vyber z ").H("Lidu |");
+                            _printer.P("| Vyber trumf ");
+                            Renderer.PrintValidChoices(player.hand, trumps, trick, _ValidTrump);
+                            _printer.P(" | Vyber z ").H("Lidu |");
                         }
                         else if (step == 3)
                         {
-                            Renderer.PRINT.P("| Odhoď do talonu ");
-                            Utils.PrintValidChoices(player.hand, trumps, trick, Utils.ValidTalon);
-                            Renderer.PRINT.P(" |");
+                            _printer.P("| Odhoď do talonu ");
+                            Renderer.PrintValidChoices(player.hand, trumps, trick, _ValidTalon);
+                            _printer.P(" |");
                         }
                         break;
                     }
                 case Game.Phase.GAME:
                     {
-                        Renderer.PRINT.P("| Zahraj kartu ");
-                        Utils.PrintValidChoices(player.hand, trumps, trick, Utils.ValidPlay);
-                        Renderer.PRINT.P(" |");
+                        _printer.P("| Zahraj kartu ");
+                        Renderer.PrintValidChoices(player.hand, trumps, trick, _ValidPlay);
+                        _printer.P(" |");
                         break;
                     }
             }

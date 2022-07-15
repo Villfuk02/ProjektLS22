@@ -1,16 +1,21 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Channels;
 using ProjektLS22;
+using static ProjektLS22.Printer;
+using static ProjektLS22.Utils;
 
 public class Game
 {
     public int simulate;
-    public int writeEvery;
-    public enum Phase { INIT, CUT, DEAL, STAKES, GAME, SCORE, COLLECT };
+    Stopwatch sw = new Stopwatch();
+    TimeSpan writeStep = TimeSpan.FromSeconds(1);
+    TimeSpan nextWrite = TimeSpan.Zero;
+    public enum Phase { INIT, CUT, DEAL, BEGIN, GAME, SCORE, COLLECT };
 
     public Phase phase = Phase.INIT;
 
@@ -23,7 +28,7 @@ public class Game
     public int activePlayer = -1;
     public int dealer = 0;
     public int step = 0;
-    public enum CardShowing { ALL, ACTIVE_HUMAN, HUMAN };
+    public enum CardShowing { ALL, HUMAN, ACTIVE_HUMAN };
     public CardShowing cardShowing = CardShowing.ACTIVE_HUMAN;
     public bool waitingForPlayer = false;
     public string status = "";
@@ -32,8 +37,9 @@ public class Game
     public int info = 0;
     public Game(PlayerController.Type[] playerTypes, int simulate)
     {
+        sw.Start();
+        nextWrite += writeStep;
         this.simulate = simulate;
-        writeEvery = (simulate / 100) + 1;
         int humans = 0;
         for (int i = 0; i < 3; i++)
         {
@@ -44,8 +50,8 @@ public class Game
         }
         cardShowing = humans == 0 ? CardShowing.ALL : (humans == 1 ? CardShowing.HUMAN : CardShowing.ACTIVE_HUMAN);
         deck = new List<Card>(Card.ALL);
-        dealer = Utils.rand.Next(3);
-        deck.Shuffle();
+        dealer = _rand.Next(3);
+        deck._Shuffle();
     }
 
     public void DoStep()
@@ -61,8 +67,8 @@ public class Game
             case Phase.DEAL:
                 DealPhase();
                 return;
-            case Phase.STAKES:
-                StakesPhase();
+            case Phase.BEGIN:
+                BeginPhase();
                 return;
             case Phase.GAME:
                 GamePhase();
@@ -73,9 +79,6 @@ public class Game
             case Phase.COLLECT:
                 CollectPhase();
                 break;
-            default:
-                Step("INVALID STATE", 1000);
-                return;
         }
     }
 
@@ -89,19 +92,21 @@ public class Game
             if (phase == Phase.COLLECT && step == 0)
             {
                 simulate--;
-                if (simulate % writeEvery == 0)
+                if (simulate == 0 || sw.Elapsed >= nextWrite)
                 {
-                    Renderer.PRINT.P($"Zbývá {simulate} her | ", 18, false);
+                    nextWrite += writeStep;
+                    _printer.P($" {sw.Elapsed.ToString(@"hh\:mm\:ss")} | ").P($"Zbývá {simulate} | ", 14, false);
                     for (int i = 0; i < 3; i++)
                     {
-                        Renderer.PRINT.P(Utils.TranslatePlayer(i), 1, true).P(':').P($" a {players[i].offense_wins},", 9, false).P($" o {players[i].defense_wins},", 9, false).P($" C {players[i].offense_wins + players[i].defense_wins} | ", 11, false);
+                        _printer.P(_playerNames[i], 1, true).P(':').P($" a {players[i].offense_wins},", 9, false).P($" o {players[i].defense_wins},", 9, false).P($" C {players[i].offense_wins + players[i].defense_wins} | ", 11, false);
                     }
-                    Renderer.PRINT.NL();
+                    _printer.NL();
                 }
             }
         }
         else if (simulate == 0)
         {
+            sw.Stop();
             return;
         }
         if (simulate == -1 || (waitingForPlayer && players[activePlayer].controller.isHuman))
@@ -111,7 +116,7 @@ public class Game
                 Renderer.RenderState(this);
             }
             if (wait > 0)
-                Utils.Wait(wait);
+                _Wait(wait);
         }
     }
 
@@ -122,13 +127,9 @@ public class Game
         this.status = status;
         this.wait = wait;
     }
-    void Step(string status, int wait, Phase nextPhase)
-    {
-        Step(status, wait, nextPhase, 0);
-    }
     void Step(string status, Phase nextPhase)
     {
-        Step(status, 0, nextPhase);
+        Step(status, 0, nextPhase, 0);
     }
     void Step(string status, int wait)
     {
@@ -157,11 +158,6 @@ public class Game
         Step(status, 0, nextPhase, nextStep);
     }
 
-
-    Player GetPlayer(int num)
-    {
-        return players[(num + 3) % 3];
-    }
     void InitPhase()
     {
         if (step == 0)
@@ -178,12 +174,12 @@ public class Game
             {
                 p.controller.NewRound(dealer);
             }
-            int cut = Utils.rand.Next(2, 30);
+            int cut = _rand.Next(2, 30);
             List<Card> n = deck.GetRange(cut, 32 - cut);
             n.AddRange(deck.GetRange(0, cut));
             deck = n;
             info = cut;
-            Step($"{Utils.TranslatePlayer(dealer - 1)} snímá...", 1000);
+            Step($"{_playerNames[_PPlus(dealer, 2)]} snímá...", 1000);
         }
         else if (step == 1)
         {
@@ -203,25 +199,25 @@ public class Game
     {
         if (step == 0)
         {
-            activePlayer = (dealer + 1) % 3;
-            Step($"{Utils.TranslatePlayer(dealer)} rozdává...", 1000);
+            activePlayer = _PPlus(dealer, 1);
+            Step($"{_playerNames[dealer]} rozdává...", 1000);
         }
         else if (step <= 6)
         {
-            DealCards(step == 1 ? 7 : 5, GetPlayer(dealer + step).hand);
+            DealCards(step == 1 ? 7 : 5, players[_PPlus(dealer, step)].hand);
             Step(400);
         }
         else if (step == 7)
         {
             for (int i = 0; i < 3; i++)
             {
-                Utils.SortCards(ref players[i].hand, null, i == activePlayer);
+                _SortCards(ref players[i].hand, null, i == activePlayer);
             }
             Step(200);
         }
         else
         {
-            Step(Phase.STAKES);
+            Step(Phase.BEGIN);
         }
     }
 
@@ -231,14 +227,14 @@ public class Game
         deck.RemoveRange(0, num);
     }
 
-    void StakesPhase()
+    void BeginPhase()
     {
         switch (step)
         {
             case 0:
                 {
                     waitingForPlayer = true;
-                    Step($"{Utils.TranslatePlayer(activePlayer)} vybírá trumfy...", 200);
+                    Step($"{_playerNames[activePlayer]} vybírá trumfy...", 200);
                     break;
                 }
             case 1:
@@ -248,14 +244,14 @@ public class Game
                     {
                         if (choice == -1)
                         {
-                            trumps = players[activePlayer].hand[Utils.rand.Next(7, 12)];
+                            trumps = players[activePlayer].hand[_rand.Next(7, 12)];
                             fromPeople = true;
                         }
                         else
                         {
                             trumps = players[activePlayer].hand[choice];
                         }
-                        Step($"{Utils.TranslatePlayer(activePlayer)} vybral trumfy", 200);
+                        Step($"{_playerNames[activePlayer]} vybral trumfy", 200);
                     }
                     break;
                 }
@@ -263,24 +259,24 @@ public class Game
                 {
                     for (int i = 0; i < 3; i++)
                     {
-                        Utils.SortCards(ref players[i].hand, trumps.suit, false);
+                        _SortCards(ref players[i].hand, trumps.suit, false);
                     }
-                    Step($"{Utils.TranslatePlayer(activePlayer)} odhazuje do talonu...", 200);
+                    Step($"{_playerNames[activePlayer]} odhazuje do talonu...", 200);
                     break;
                 }
             case 3:
                 {
                     int choice = players[activePlayer].controller.ChooseTalon(trumps, talon);
                     if (choice >= 0 && choice < players[activePlayer].hand.Count
-                        && Utils.ValidTalon(players[activePlayer].hand, choice, trumps, trick))
+                        && _ValidTalon(players[activePlayer].hand, choice, trumps, trick))
                     {
                         Card c = players[activePlayer].hand[choice];
                         players[activePlayer].hand.RemoveAt(choice);
                         talon.Add(c);
                         if (talon.Count == 2)
-                            Step($"{Utils.TranslatePlayer(activePlayer)} odhodil do talonu");
+                            Step($"{_playerNames[activePlayer]} odhodil do talonu");
                         else
-                            Step(Phase.STAKES, 2);
+                            Step(Phase.BEGIN, 2);
                     }
                     break;
                 }
@@ -303,19 +299,19 @@ public class Game
             case 0:
                 {
                     waitingForPlayer = true;
-                    Step($"{Utils.TranslatePlayer(activePlayer)} vynáší...", 200);
+                    Step($"{_playerNames[activePlayer]} vynáší...", 200);
                     break;
                 }
             case 1:
                 {
                     int choice = players[activePlayer].controller.ChoosePlay(trick, trumps);
                     if (choice >= 0 && choice < players[activePlayer].hand.Count
-                        && Utils.ValidPlay(players[activePlayer].hand, choice, trumps, trick))
+                        && _ValidPlay(players[activePlayer].hand, choice, trumps, trick))
                     {
                         Card c = players[activePlayer].hand[choice];
                         players[activePlayer].hand.RemoveAt(choice);
                         bool marriage = false;
-                        if (c.value.marriage && players[activePlayer].hand.Exists((Card d) => d.suit == c.suit && d.value.marriage))
+                        if (c.value.marriage && players[activePlayer].hand.Exists(d => c.SameSuit(d) && d.value.marriage))
                         {
                             marriage = true;
                             players[activePlayer].marriages.Add(c);
@@ -340,18 +336,18 @@ public class Game
                 }
             case 2:
                 {
-                    Step($"Na řadě je {Utils.TranslatePlayer(activePlayer)}...", 200, Phase.GAME, 1);
+                    Step($"Na řadě je {_playerNames[activePlayer]}...", 200, Phase.GAME, 1);
                     break;
                 }
             case 3:
                 {
-                    int winner = (activePlayer + Utils.TrickWinner(trick, trumps.suit)) % 3;
+                    int winner = _PPlus(activePlayer, _TrickWinner(trick, trumps.suit));
                     foreach (Player p in players)
                     {
                         p.controller.TakesTrick(winner, trick);
                     }
                     info = winner;
-                    Step($"{Utils.TranslatePlayer(winner)} bere štych...", 4000);
+                    Step($"{_playerNames[winner]} bere štych...", 4000);
                     break;
                 }
             case 4:
@@ -374,37 +370,37 @@ public class Game
 
     void NextPlayer()
     {
-        activePlayer = (activePlayer + 1) % 3;
+        activePlayer = _PPlus(activePlayer, 1);
     }
 
     void ScorePhase()
     {
         if (step > 0)
         {
-            dealer = (dealer + 1) % 3;
+            dealer = _PPlus(dealer, 1);
             activePlayer = dealer;
-            Step($"{Utils.TranslatePlayer(dealer)} sbírá karty...", Phase.COLLECT);
+            Step($"{_playerNames[dealer]} sbírá karty...", Phase.COLLECT);
             return;
         }
-        int offense = CountPoints((dealer + 1) % 3);
-        int defense = CountPoints(dealer) + CountPoints((dealer + 2) % 3);
+        int offense = CountPoints(_PPlus(dealer, 1));
+        int defense = CountPoints(dealer) + CountPoints(_PPlus(dealer, 2));
 
         if (offense > defense)
         {
-            players[(dealer + 1) % 3].offense_wins++;
+            players[_PPlus(dealer, 1)].offense_wins++;
             Step($"Aktér vyhrál {offense}:{defense}!", 4000);
         }
         else
         {
             players[dealer].defense_wins++;
-            players[(dealer + 2) % 3].defense_wins++;
-            Step($"Obrana vyhrála {defense}:{offense}!", 4000);
+            players[_PPlus(dealer, 2)].defense_wins++;
+            Step($"Opozice vyhrála {defense}:{offense}!", 4000);
         }
     }
 
     int CountPoints(int player)
     {
-        int pts = players[player].discard.Sum((Card c) => c.value.ten ? 10 : 0);
+        int pts = players[player].discard.Count(c => c.value.ten) * 10;
         if (player == info)
         {
             pts += 10;
@@ -426,7 +422,7 @@ public class Game
                 players[i].marriages.Clear();
             }
             collect.Add(talon);
-            collect.Shuffle();
+            collect._Shuffle();
             foreach (List<Card> list in collect)
             {
                 deck.AddRange(list);
