@@ -71,7 +71,8 @@ namespace ProjektLS22
                 PlayerModel pm = players[p];
                 if (marriage)
                 {
-                    others.Remove(c.GetPartner());
+                    players[_PPlus(p, 1)].Remove(c.GetPartner());
+                    players[_PPlus(p, 2)].Remove(c.GetPartner());
                 }
                 if (trick.Count == 2)
                 {

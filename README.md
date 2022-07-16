@@ -4,13 +4,14 @@ uhhhh
 
 ## TODO
 
-- fix SimAI
+- low level cards?
 - optimize simulation
-- random permuation order
-- test simulation depth
-- finish simulation AI
 - make bots unable to modify game
 - make bots static?
 - encapsulation
 - pravidla
 - dokumentace AAAAAAAAAAAAAAA
+
+## Notes
+
+- max 19 399 380 permutations
