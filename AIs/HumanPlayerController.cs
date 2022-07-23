@@ -54,7 +54,7 @@ namespace ProjektLS22
                 if (k.Key == ConsoleKey.L)
                     return null;
                 choice = cardChoiceLetters.IndexOf(char.ToUpper(k.KeyChar));
-            } while (choice == -1 || choice >= 7);
+            } while (choice == -1 || choice >= sorted.Count);
             return sorted[choice];
         }
 
@@ -67,7 +67,7 @@ namespace ProjektLS22
             {
                 ConsoleKeyInfo k = Console.ReadKey(true);
                 choice = cardChoiceLetters.IndexOf(char.ToUpper(k.KeyChar));
-            } while (choice == -1);
+            } while (choice == -1 || choice >= sorted.Count);
             return sorted[choice];
         }
         public override Card ChoosePlay(List<Card> trick, Card trumps)
@@ -79,7 +79,7 @@ namespace ProjektLS22
             {
                 ConsoleKeyInfo k = Console.ReadKey(true);
                 choice = cardChoiceLetters.IndexOf(char.ToUpper(k.KeyChar));
-            } while (choice == -1);
+            } while (choice == -1 || choice >= sorted.Count);
             return sorted[choice];
         }
     }

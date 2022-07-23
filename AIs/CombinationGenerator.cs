@@ -20,7 +20,7 @@ namespace ProjektLS22
                 this.p2 = p2;
             }
             /// <summary>
-            /// Copy a PiletTiple and update it by adding a card to the given Pile.
+            /// Copy a PileTiple and update it by adding a card to the given Pile.
             /// </summary>
             public PileTriple(PileTriple original, int pileToEdit, uint removeCardMask)
             {
@@ -77,7 +77,7 @@ namespace ProjektLS22
             return combinations;
         }
         /// <summary>
-        /// Generates all combinations of cards in player hands and talon, according to the constrains given. Then sequentailly returns them in random order.
+        /// Generates all combinations of cards in player hands and talon, according to the constrains given. Then sequentially returns them in random order.
         /// </summary>
         public static IEnumerable<Pile[]> AllCombinationsRandomOrder(SinglePlayerPrediction[] models, int fixedPlayer, Pile hand, Pile? talonIfKnown, int startingPlayer, Pile valid)
         {

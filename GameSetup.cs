@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using static ProjektLS22.Printer;
 using static ProjektLS22.Utils;
 
@@ -58,7 +57,7 @@ namespace ProjektLS22
                 _printer.PF("Do talonu nesmí být odhozena desítka |X|, eso |A| ani karta, která byla zvolena jako reprezentace trumfů.").NL();
                 _printer.PF("Poté následuje sehrání deseti *štychů*, za které jsou přidělovány body.").NL();
                 _printer.NL().PF("  *|Sehrání štychu|*").NL().NL();
-                _printer.PF("Každý hráč postupně po směru hry odhodí do štychu jednu kartu. První štych *vynáší* aktér - odhazje první kartu.").NL();
+                _printer.PF("Každý hráč postupně po směru hry odhodí do štychu jednu kartu. První štych *vynáší* aktér - odhazuje první kartu.").NL();
                 _printer.PF("První kartu vynášející zvolí libovolně. Každý ze zbylých dvou hráčů se musí řídit následujícími pravidly:").NL();
                 _printer.PF(" - *Přiznat barvu*").NL();
                 _printer.PF("   Pokud má hráč kartu stejné barvy, jako první karta štychu, musí zahrát kartu této barvy.").NL();
@@ -79,7 +78,7 @@ namespace ProjektLS22
                 _printer.PF("  *10 bodů* za každé eso |A| a každou desítku |X| v štyších, které vyhrál.").NL();
                 _printer.PF("  *20 bodů* za každou hlášku.").NL();
                 _printer.PF("  *10 bodů* za vyhrání posledního štychu.").NL();
-                _printer.PF("Kolo *vyhrává* ten tým, který nasbíral více bodů. Maximálně lze dohromady získat 190 bodů.").NL().NL();
+                _printer.PF("Kolo *vyhrává* ten tým, který nasbíral více bodů. Maximálně lze dohromady získat 170 bodů.").NL().NL();
                 _printer.PF("Nakonec se seberou všecnhy karty, nemíchají se, jen se sejmou na náhodném místě v balíčku.").NL();
                 _printer.PF("V příštím kole bude aktér hráč po směru hry od momentálního aktéra.");
             }

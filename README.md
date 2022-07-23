@@ -10,7 +10,7 @@ Aplikace se ovládá klávesnicí. Na konci výstupu jsou vždy možnosti ovlád
 
 ### Hlavní menu
 
-První obrazovka, se ktrou se setkáte je hlavní menu. Zde se dá nastavit hra.
+První obrazovka, se kterou se setkáte je hlavní menu. Zde se dá nastavit hra.
 
 Ve třech modrých obdélnících jsou vypsané informace o hráčích. Jejich jména jsou napevno nastavená na *Jarda*, *Franta* a *Karel*. Pod jménem hráče se nachází název **ovladače**. Ovladač hráče se dá změnit a určuje jeho chování.
 
@@ -30,6 +30,67 @@ Možnosti v menu:
 - Mód
   - normální - hra probíhá normálně s grafickým zobrazením.
   - simulace X her - proběhne X her bez grafického zobrazení, zobrazují se pouze statistiky. Doporučeno pouze pokud žádný ovladač není *Člověk*.
+  
+### Pravidla
+
+Tato hra je založená na *Mariáši*. Je ale velmi zjednodušená.
+
+Hra je pro tři hráče. V každém kole (sehrávce) je jeden hráč určen jako *aktér*, který je označen *červeně*.
+Zbylí dva hráči - *opozice* - hrajou spolu proti aktérovi. Tým, kterým má na konci sehrávky více bodů vyhrává.
+
+#### Průběh kola
+
+Na začátku kola je aktérovi rozdáno 7 + 5 karet a každému hráči opozice 5 + 5.
+
+Aktér se smí dívat jen na prvních sedm svých karet a z nich vybere jednu, kterou ukáže ostatním.
+Barva této karty určuje barvu *trumfů* po zbytek sehrávky.
+Pokud si aktér nechce vybrat z prvních sedmi karet, může vybrat *z lidu* - vybere kartu náhodně ze zbylých pěti.
+
+Potom si vezme do ruky všechny své karty a dvě z nich odhodí lícem dolů do *talonu*. Se zbylými deseti kartami bude hrát.
+Do talonu nesmí být odhozena desítka |X|, eso |A| ani karta, která byla zvolena jako reprezentace trumfů.
+
+Poté následuje sehrání deseti *štychů*, za které jsou přidělovány body.
+
+#### Sehrání štychu
+
+Každý hráč postupně po směru hry odhodí do štychu jednu kartu. První štych *vynáší* aktér - odhazuje první kartu.
+První kartu vynášející zvolí libovolně. Každý ze zbylých dvou hráčů se musí řídit následujícími pravidly:
+
+- Přiznat barvu
+
+  Pokud má hráč kartu stejné barvy, jako první karta štychu, musí zahrát kartu této barvy.
+  
+  - Jinak zahrát trumf
+  
+    Pokud nemůže hráč přiznat barvu, ale má trumf, musí zahrát trumf.
+    Pokud hráč nemá ani trumf, může zahrát libovolnou kartu.
+- Přebíjet
+
+  Pokud může hráč přebít nejsilnější kartu štychu, musí jí přebít. Přiznání barvy má ale vyšší prioritu.
+  
+  Síla karty je určena prvotně podle barvy - nejsilnější jsou *trumfy*, potom barva *první karty štychu*, pak ostatní.
+  
+  Druhotně podle její hodnoty - seřazeno od nejsilnější po nejslabší:
+  Eso |A|, desítka |X|, král |K|, svršek |Q|, spodek |J|, devítka |9|, osma |8|, sedma |7|.
+
+Pokud hráč zahraje krále |K| (nabo svrška |Q|) a má svrška |Q| (nebo krále |K|) stejné barvy v ruce, tak zahrál tzv *hlášku*.
+Za hlášku jsou bonusové body a oznamuje se veřejně všem hráčům.
+
+Poté, co odehraje třetí hráč, tak hráč, který zahrál nejsilnější kartu vyhrává štych a *vynáší* příští štych.
+Po odehrání všech deseti štychů se sehrávka vyhodnotí.
+
+#### Vyhodnocení
+
+Každý hráč získá:
+
+- *10 bodů* za každé eso |A| a každou desítku |X| v štyších, které vyhrál.
+- *20 bodů* za každou hlášku.
+- *10 bodů* za vyhrání posledního štychu.
+
+Kolo *vyhrává* ten tým, který nasbíral více bodů. Maximálně lze dohromady získat 170 bodů.
+
+Nakonec se seberou všecnhy karty, nemíchají se, jen se sejmou na náhodném místě v balíčku.
+V příštím kole bude aktér hráč po směru hry od momentálního aktéra.)
   
 ### Hra, normální mód
 
