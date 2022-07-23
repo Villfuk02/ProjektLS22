@@ -10,26 +10,28 @@ namespace ProjektLS22
     public class SimulationAI : SmartAI
     {
         int depth;
-        List<Card> talonIfKnown;
+        int maxCombinations;
+        Pile? talonIfKnown;
         int[] pts = new int[3];
         int offense;
-        HashSet<Card> valid = new HashSet<Card>();
+        SinglePlayerPrediction valid = new SinglePlayerPrediction();
 
-        public SimulationAI(int depth)
+        public SimulationAI(Player p, int depth, int maxCombinations) : base(p)
         {
             this.depth = depth;
+            this.maxCombinations = maxCombinations;
         }
         public override void NewRound(int dealer)
         {
             base.NewRound(dealer);
             talonIfKnown = null;
-            valid = new HashSet<Card>(Card.ALL);
+            valid.Reset();
         }
-        public override void FirstTrickStart(Card trumps, bool fromPeople, int offense, List<Card> talonIfKnown)
+        public override void FirstTrickStart(Card trumps, bool fromPeople, int offense, Pile? talonIfKnown)
         {
             base.FirstTrickStart(trumps, fromPeople, offense, talonIfKnown);
             this.talonIfKnown = talonIfKnown;
-            valid.ExceptWith(player.hand);
+            valid.Remove(Hand);
             this.offense = offense;
         }
         public override void PlaysCard(int p, Card c, List<Card> trick, Card trumps, bool marriage)
@@ -41,160 +43,105 @@ namespace ProjektLS22
         }
         public override void TakesTrick(int p, List<Card> trick)
         {
-            pts[p] += trick.Count(c => c.value.ten) * 10;
+            pts[p] += trick.Count(c => c.Value.GivesPoints) * 10;
             base.TakesTrick(p, trick);
         }
-        public override int ChoosePlay(List<Card> trick, Card trumps)
+        public override Card ChoosePlay(List<Card> trick, Card trumps)
         {
-            if (player.hand.Count > depth)
+            if (Hand.Count > depth)
             {
                 return base.ChoosePlay(trick, trumps);
             }
-            else if (player.hand.Count == 1)
+            else if (Hand.Count == 1)
             {
-                return 0;
+                return Hand.Enumerate().First();
             }
             else
             {
-                int b = GetBestPlay(player.index, trumps, player.hand, trick, players, _PPlus(player.index, 3 - trick.Count), offense, pts, talonIfKnown, valid);
+                Card preference = base.ChoosePlay(trick, trumps);
+                Card b = GetBestPlay(Index, trumps, Hand, trick, players, _PPlus(Index, 3 - trick.Count), offense, pts, talonIfKnown, valid, preference, maxCombinations);
                 return b;
             }
         }
 
-        static IEnumerable<List<Card>[]> AllPossibleDeals(SpecificPlayerModel[] predictedHands, int fixedPlayer, List<Card> hand, List<Card> talonIfKnown, int startingPlayer, Card trumps, IEnumerable<Card> valid)
+        static Card GetBestPlay(int p, Card trumps, Pile hand, List<Card> trick, SinglePlayerPrediction[] predictedHands, int startingPlayer, int offense, int[] pts, Pile? talonIfKnown, Pile valid, Card preference, int maxCombinations)
         {
-            List<Card>[] permutation = new List<Card>[4];
-            for (int i = 0; i < 4; i++)
+            // _printer.NL();
+            // for (int i = 0; i < 3; i++)
+            // {
+            //     _printer.P(pts[i], 7);
+            // }
+            List<Card> playable = new List<Card>();
+            foreach (Card c in hand.Enumerate())
             {
-                permutation[i] = new List<Card>();
-            }
-            permutation[fixedPlayer] = hand;
-            if (talonIfKnown != null)
-                permutation[3] = talonIfKnown;
-            List<Card> validCards = new List<Card>(valid);
-            _SortCards(ref validCards, trumps.suit, false);
-            validCards.RemoveAll(d => permutation[3].Contains(d));
-            int[] maxCards = new int[4];
-            int remove = hand.Count * 2 - validCards.Count + 5 - permutation[3].Count;
-            for (int i = 0; i < 3; i++)
-            {
-                maxCards[i] = hand.Count + 1;
-            }
-            maxCards[3] = 2;
-            int offset = startingPlayer;
-            while (remove > 0)
-            {
-                maxCards[offset]--;
-                remove--;
-                offset = _PPlus(offset, 1);
-            }
-            Stack<int> additions = new Stack<int>();
-            int pos = 0;
-            while (pos >= 0)
-            {
-                if (pos >= validCards.Count)
-                {
-                    yield return permutation;
-                    pos--;
-                    if (pos >= 0)
-                    {
-                        int l = additions.Peek();
-                        permutation[l].Remove(validCards[pos]);
-                    }
-                }
-                else
-                {
-                    if (additions.Count == pos)
-                    {
-                        additions.Push(-1);
-                    }
-                    else
-                    {
-                        int h = additions.Pop() + 1;
-                        Card c = validCards[pos];
-                        if (h == 4)
-                        {
-                            pos--;
-                            if (pos >= 0)
-                            {
-                                int l = additions.Peek();
-                                permutation[l].Remove(validCards[pos]);
-                            }
-                        }
-                        else
-                        {
-                            additions.Push(h);
-                            if (maxCards[h] > permutation[h].Count)
-                            {
-                                if (h < 3)
-                                {
-                                    if (predictedHands[h].Contains(c))
-                                    {
-                                        permutation[h].Add(c);
-                                        pos++;
-                                    }
-                                }
-                                else
-                                {
-                                    if (!c.value.ten && c != trumps)
-                                    {
-                                        permutation[h].Add(c);
-                                        pos++;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        static int GetBestPlay(int p, Card trumps, List<Card> hand, List<Card> trick, SpecificPlayerModel[] predictedHands, int startingPlayer, int offense, int[] pts, List<Card> talonIfKnown, IEnumerable<Card> valid)
-        {
-            List<int> playable = new List<int>();
-            for (int i = 0; i < hand.Count; i++)
-            {
-                if (_ValidPlay(hand, i, trumps, trick))
-                {
-                    playable.Add(i);
-                }
+                if (_ValidPlay(hand, c, trumps.Suit, trick.ToArray(), trick.Count))
+                    playable.Add(c);
             }
             int[] wins = new int[playable.Count];
-            foreach (var permutation in AllPossibleDeals(predictedHands, p, hand, talonIfKnown, startingPlayer, trumps, valid))
+            int combinations = 0;
+            foreach (var combination in CombinationGenerator.AllCombinationsRandomOrder(predictedHands, p, hand, talonIfKnown, startingPlayer, valid))
             {
-                bool[] w = GetWinsForPermutation(p, trumps, permutation, trick, offense, pts, playable);
+                combinations++;
+                if (combinations > maxCombinations)
+                    break;
+                bool[] w = GetWinsForCombination(p, trumps, combination, trick, offense, pts, playable);
                 for (int i = 0; i < playable.Count; i++)
                 {
                     if (w[i])
                         wins[i]++;
                 }
+                // if (!w.All(e => e == w[0]))
+                // {
+                // if (cases > 0)
+                // {
+                //     _printer.NL();
+                //     for (int i = 0; i < 4; i++)
+                //     {
+                //         Renderer.PrintHand(combination[i], true, false);
+                //         _printer.S(3);
+                //     }
+                // }
+                //     _printer.NL();
+                //     for (int i = 0; i < playable.Count; i++)
+                //     {
+                //         _printer.S(3).P(w[i] ? 'W' : 'L');
+                //     }
+                // }
+            }
+            // _printer.NL();
+            for (int i = 0; i < playable.Count; i++)
+            {
+                // _printer.P(wins[i], 8);
+                wins[i] *= 2;
+                if (playable[i] == preference)
+                    wins[i]++;
             }
             return playable[wins.AsSpan().IndexOf(wins.Max())];
         }
-        static bool[] GetWinsForPermutation(int p, Card trumps, List<Card>[] permutation, List<Card> trick, int offense, int[] pts, List<int> playable)
+        static bool[] GetWinsForCombination(int p, Card trumps, Pile[] combination, List<Card> trick, int offense, int[] pts, List<Card> playable)
         {
-            GameState g = new GameState(permutation, trick, pts, p);
+            GameState g = new GameState(combination, trick, pts, p);
             bool[] wins = new bool[playable.Count];
             for (int i = 0; i < playable.Count; i++)
             {
-                GameState n = g.PlayCardAndUpdate(playable[i], trumps.suit);
+                GameState n = new GameState(g, playable[i], trumps.Suit);
                 bool w = CanWin(n, trumps, offense);
                 wins[i] = ((n.player == offense) == (p == offense)) == w;
             }
             return wins;
         }
 
-        static bool CanWin(GameState g, Card trumps, int offense)
+        static bool CanWin(GameState g, in Card trumps, int offense)
         {
-            if (g.playerHands[g.player].Count == 0)
+            if (g.playerHands[g.player].IsEmpty)
             {
                 return (g.pts[offense] > g.pts[_PPlus(offense, 1)] + g.pts[_PPlus(offense, 2)]) == (g.player == offense);
             }
-            for (int i = 0; i < g.playerHands[g.player].Count; i++)
+            foreach (Card c in g.playerHands[g.player].Enumerate())
             {
-                if (_ValidPlay(g.playerHands[g.player], i, trumps, g.trick))
+                if (_ValidPlay(g.playerHands[g.player], c, trumps.Suit, g.trick, g.trickCount))
                 {
-                    GameState n = g.PlayCardAndUpdate(i, trumps.suit);
+                    GameState n = new GameState(g, c, trumps.Suit);
                     bool w = CanWin(n, trumps, offense);
                     if (((n.player == offense) == (g.player == offense)) == w)
                         return true;
@@ -203,56 +150,53 @@ namespace ProjektLS22
             return false;
         }
 
-        struct GameState
+        readonly struct GameState
         {
-            public List<Card>[] playerHands;
-            public List<Card> trick;
-            public int[] pts;
-            public int player;
+            public readonly CombinationGenerator.PileTriple playerHands;
+            public readonly Card[] trick;
+            public readonly int trickCount;
+            public readonly int[] pts;
+            public readonly int player;
 
-            public GameState(List<Card>[] permutaion, List<Card> trick, int[] pts, int p)
+            public GameState(Pile[] combination, List<Card> trick, int[] pts, int p)
             {
-                playerHands = new List<Card>[3];
+                playerHands = new CombinationGenerator.PileTriple(combination[0], combination[1], combination[2]);
                 this.pts = new int[3];
+                this.trick = new Card[3];
+                trickCount = trick.Count;
                 for (int i = 0; i < 3; i++)
                 {
-                    playerHands[i] = new List<Card>(permutaion[i]);
                     this.pts[i] = pts[i];
+                    if (i < trickCount)
+                        this.trick[i] = trick[i];
                 }
-                this.trick = new List<Card>(trick);
                 player = p;
             }
 
-            public GameState(GameState g)
+            public GameState(GameState g, Card cardToPlay, Suit trumps)
             {
-                playerHands = new List<Card>[3];
+                playerHands = new CombinationGenerator.PileTriple(g.playerHands, g.player, (Pile)cardToPlay);
                 pts = new int[3];
-                for (int i = 0; i < 3; i++)
-                {
-                    playerHands[i] = new List<Card>(g.playerHands[i]);
-                    pts[i] = g.pts[i];
-                }
-                trick = new List<Card>(g.trick);
+                trick = new Card[3];
+                trickCount = g.trickCount;
                 player = g.player;
-            }
 
-            public GameState PlayCardAndUpdate(int i, Suit trumps)
-            {
-                GameState n = new GameState(this);
-                Card c = playerHands[player][i];
-                n.playerHands[player].RemoveAt(i);
-                n.trick.Add(c);
-                if (c.value.marriage && n.playerHands[player].Any(d => c.SameSuit(d) && d.value.marriage))
-                    n.pts[player] += 20;
-                n.player = _PPlus(player, 1);
-                if (n.trick.Count == 3)
+                trick[trickCount] = cardToPlay;
+                trickCount++;
+                if (cardToPlay.Value.Marriage && playerHands[player].HasAny(cardToPlay.GetPartner()))
+                    pts[player] += 20;
+                player = _PPlus(player, 1);
+                if (trickCount == 3)
                 {
-                    int w = _TrickWinner(n.trick, trumps);
-                    n.player = _PPlus(player, 1 + w);
-                    n.pts[n.player] += n.trick.Count(d => d.value.ten) * 10;
-                    n.trick.Clear();
+                    int w = _TrickWinner(trick, trumps);
+                    player = _PPlus(player, 1 + w);
+                    pts[player] += trick.Count(d => d.Value.GivesPoints) * 10;
+                    trickCount = 0;
+                    if (playerHands[0].Count == 0)
+                    {
+                        pts[player] += 10;
+                    }
                 }
-                return n;
             }
         }
     }

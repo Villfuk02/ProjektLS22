@@ -4,14 +4,16 @@ uhhhh
 
 ## TODO
 
-- low level cards?
 - optimize simulation
 - make bots unable to modify game
-- make bots static?
 - encapsulation
+- sprinkle *in* everywhere
 - pravidla
-- dokumentace AAAAAAAAAAAAAAA
+- imports
+- prog dokumentace
+- benchmarks
+- uživ dokumentace
 
 ## Notes
 
-- max 19 399 380 permutations
+- max 19 399 380 combinations

@@ -11,34 +11,34 @@ namespace ProjektLS22
 {
     public abstract class GameStateKeepingAI : PlayerController
     {
-        protected SpecificPlayerModel[] players = new SpecificPlayerModel[3];
-        protected PlayerModel ally;
-        protected PlayerModel us;
-        protected PlayerModel others;
-        protected PlayerModel all;
-        protected SpecificPlayerModel me { get => players[player.index]; }
-        protected SpecificPlayerModel nextPlayer { get => players[_PPlus(player.index, 1)]; }
-        protected SpecificPlayerModel prevPlayer { get => players[_PPlus(player.index, 2)]; }
+        protected SinglePlayerPrediction[] players = new SinglePlayerPrediction[3];
+        protected PlayerPrediction ally;
+        protected PlayerPrediction us;
+        protected PlayerPrediction others;
+        protected PlayerPrediction all;
+        protected SinglePlayerPrediction me { get => players[Index]; }
+        protected SinglePlayerPrediction nextPlayer { get => players[_PPlus(Index, 1)]; }
+        protected SinglePlayerPrediction prevPlayer { get => players[_PPlus(Index, 2)]; }
         protected bool isOffense;
         protected bool isFirstDefense;
         protected bool isSecondDefense;
 
-        public GameStateKeepingAI()
+        public GameStateKeepingAI(Player p) : base(p, false)
         {
             for (int i = 0; i < 3; i++)
             {
-                players[i] = new SpecificPlayerModel();
+                players[i] = new SinglePlayerPrediction();
             }
-            all = new JointPlayerModel(players[0], players[1], players[2]);
+            all = new JointPlayerPrediction(players[0], players[1], players[2]);
         }
 
         public override void NewRound(int dealer)
         {
-            isSecondDefense = player.index == dealer;
-            isOffense = player.index == _PPlus(dealer, 1);
-            isFirstDefense = player.index == _PPlus(dealer, 2);
+            isSecondDefense = Index == dealer;
+            isOffense = Index == _PPlus(dealer, 1);
+            isFirstDefense = Index == _PPlus(dealer, 2);
             all.Reset();
-            others = new JointPlayerModel(players[_PPlus(player.index, 1)], players[_PPlus(player.index, 2)]);
+            others = new JointPlayerPrediction(players[_PPlus(Index, 1)], players[_PPlus(Index, 2)]);
             if (isOffense)
             {
                 ally = null;
@@ -51,24 +51,24 @@ namespace ProjektLS22
             {
                 ally = prevPlayer;
             }
-            us = new JointPlayerModel(me, ally);
+            us = new JointPlayerPrediction(me, ally);
         }
-        public override void FirstTrickStart(Card trumps, bool fromPeople, int offense, List<Card> talonIfKnown)
+        public override void FirstTrickStart(Card trumps, bool fromPeople, int offense, Pile? talonIfKnown)
         {
             if (isOffense)
-                others.RemoveRange(talonIfKnown);
+                others.Remove(talonIfKnown.Value);
             else
                 ally.Remove(trumps);
-            others.RemoveRange(player.hand);
-            me.Set(player.hand);
+            others.Remove(Hand);
+            me.Set(Hand);
         }
         public override void PlaysCard(int p, Card c, List<Card> trick, Card trumps, bool marriage)
         {
             all.Remove(c);
-            if (p != player.index)
+            if (p != Index)
             {
                 Card first = trick[0];
-                PlayerModel pm = players[p];
+                PlayerPrediction pp = players[p];
                 if (marriage)
                 {
                     players[_PPlus(p, 1)].Remove(c.GetPartner());
@@ -78,44 +78,44 @@ namespace ProjektLS22
                 {
                     if (first.SameSuit(c))
                     {
-                        if (c.LowerThan(first))
+                        if (c.Value < first.Value)
                         {
-                            pm.RemoveMatching(first.SameSuitButLowerThan);
+                            pp.Remove(first.SameSuitButLower);
                         }
                     }
                     else
                     {
-                        pm.RemoveMatching(first.SameSuit);
+                        pp.Remove(first.Suit);
                         if (!trumps.SameSuit(c))
                         {
-                            pm.RemoveMatching(trumps.SameSuit);
+                            pp.Remove(trumps.Suit);
                         }
                     }
                 }
                 else if (trick.Count == 3)
                 {
-                    Card best = _BestFromFirstTwo(trumps, trick);
+                    Card best = _BestFromFirstTwo(trumps.Suit, trick.ToArray(), trick.Count);
                     if (first.SameSuit(c))
                     {
                         if (best.SameSuit(first))
                         {
-                            if (c.LowerThan(best))
-                                pm.RemoveMatching(best.SameSuitButLowerThan);
+                            if (c.Value < best.Value)
+                                pp.Remove(best.SameSuitButLower);
                         }
                     }
                     else
                     {
-                        pm.RemoveMatching(first.SameSuit);
+                        pp.Remove(first.Suit);
                         if (trumps.SameSuit(c))
                         {
-                            if (best.SameSuit(trumps) && c.LowerThan(best))
+                            if (best.SameSuit(trumps) && c.Value < best.Value)
                             {
-                                pm.RemoveMatching(best.SameSuitButLowerThan);
+                                pp.Remove(best.SameSuitButLower);
                             }
                         }
                         else
                         {
-                            pm.RemoveMatching(trumps.SameSuit);
+                            pp.Remove(trumps.Suit);
                         }
                     }
                 }

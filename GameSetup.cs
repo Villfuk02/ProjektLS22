@@ -7,12 +7,12 @@ namespace ProjektLS22
 {
     public class GameSetup
     {
-        PlayerController.Type[] players = new PlayerController.Type[3] { PlayerController.HUMAN, PlayerController.SMART, PlayerController.SIMULATE };
+        PlayerController.Type[] players = new PlayerController.Type[3] { PlayerController.HUMAN, PlayerController.SMART, PlayerController.HYBRID };
         enum State { Menu, Rules, Finished };
         State state = State.Menu;
         InputHandler menuHandler = new InputHandler();
         InputHandler rulesHandler = new InputHandler();
-        public static readonly int[] MODE_OPTIONS = new int[] { -1, 999, 9999, 99999 };
+        public static readonly int[] MODE_OPTIONS = new int[] { -1, 1000, 10_000, 100_000 };
         public int mode_selected = 0;
 
         public GameSetup()

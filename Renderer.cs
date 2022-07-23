@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Security.Cryptography.X509Certificates;
 using static ProjektLS22.Printer;
 using static ProjektLS22.Utils;
 
@@ -11,9 +12,9 @@ namespace ProjektLS22
         public static void RenderState(Game g)
         {
             _printer.CLR().R();
-            if (g.trumps != null)
+            if (g.trumps.HasValue)
             {
-                _printer.P("Trumfy: ").C(g.trumps);
+                _printer.P("Trumfy: ").C(g.trumps.Value);
                 if (g.fromPeople)
                     _printer.DG().P("(z lidu)").R();
                 _printer.P(" | ");
@@ -64,15 +65,15 @@ namespace ProjektLS22
                     {
                         _printer.NL(2);
                         PrintPlayers(g, g.step <= 1);
-                        if (g.players[g.activePlayer].controller.isHuman)
+                        if (g.players[g.activePlayer].controller.IsHuman)
                         {
                             if (g.step == 1)
                             {
-                                PrintCardSelection(g, _ValidTrump);
+                                PrintCardSelection(g, _TrumpValidator);
                             }
                             else if (g.step == 3)
                             {
-                                PrintCardSelection(g, _ValidTalon);
+                                PrintCardSelection(g, _TalonValidator);
                             }
                         }
                         break;
@@ -84,7 +85,7 @@ namespace ProjektLS22
                         PrintPlayers(g, false);
                         if (g.step == 1)
                         {
-                            PrintCardSelection(g, _ValidPlay);
+                            PrintCardSelection(g, _PlayValidator);
                         }
                         break;
                     }
@@ -119,9 +120,9 @@ namespace ProjektLS22
             if (g.cardShowing == Game.CardShowing.ALL)
                 return true;
             if (g.cardShowing == Game.CardShowing.HUMAN)
-                return g.players[player].controller.isHuman;
+                return g.players[player].controller.IsHuman;
             if (g.cardShowing == Game.CardShowing.ACTIVE_HUMAN)
-                return g.players[player].controller.isHuman && player == g.activePlayer && g.waitingForPlayer;
+                return g.players[player].controller.IsHuman && player == g.activePlayer && g.waitingForPlayer;
             return false;
         }
 
@@ -153,37 +154,24 @@ namespace ProjektLS22
             for (int i = 0; i < 3; i++)
             {
                 bool visible = ShowHand(g, i);
-                _printer.S(1);
-                int width = PrintHand(g.players[i].hand, visible, seven && i == g.activePlayer, g.cardShowing == Game.CardShowing.ALL);
-                PrintTricks(WIDTH_PER_PLAYER - 3 - width, g.players[i].discard.Count / 3, g.players[i].marriages);
+                _printer.S(1).C(g.players[i].hand, visible);
+                int disCount = g.players[i].discard.Count;
+                if (disCount % 3 == 0)
+                    PrintDiscard(WIDTH_PER_PLAYER - 3 - g.players[i].hand.Count, disCount / 3, g.players[i].marriages);
+                else
+                    _printer.S(1).CB(5);
                 _printer.S(2);
             }
             if (g.talon.Count > 0)
             {
-                _printer.S(1);
-                PrintHand(g.talon, Hidden(g), false);
+                _printer.S(1).C(g.talon, Hidden(g));
             }
             _printer.NL();
         }
 
-        public static int PrintHand(List<Card> hand, bool visible, bool seven, bool all = false)
+        public static void PrintDiscard(int space, int tricks, List<Card> marriages)
         {
-            if (seven && hand.Count > 7)
-            {
-                _printer.C(hand.GetRange(0, 7), visible).S(1).C(hand.GetRange(7, hand.Count - 7), all);
-                return hand.Count + 1;
-            }
-            else
-            {
-                _printer.C(hand, visible);
-                return hand.Count;
-            }
-        }
-
-        public static void PrintTricks(int space, int tricks, List<Card> marriages)
-        {
-            _printer.S(space - marriages.Count - 1);
-            PrintHand(marriages, true, false);
+            _printer.S(space - marriages.Count - 1).C(marriages, true);
             if (tricks > 0)
             {
                 _printer.B(ConsoleColor.Blue).W().D(tricks).R();
@@ -194,17 +182,18 @@ namespace ProjektLS22
             }
         }
 
-        public static void PrintCardSelection(Game g, Func<List<Card>, int, Card, List<Card>, bool> validator)
+        public static void PrintCardSelection(Game g, Func<Pile, Card, Card?, List<Card>, bool> validator)
         {
             _printer.S(1);
             for (int i = 0; i < 3; i++)
             {
-                if (g.activePlayer == i && g.players[i].controller.isHuman)
+                if (g.activePlayer == i && g.players[i].controller.IsHuman)
                 {
+                    Pile h = new Pile(g.players[i].hand);
                     _printer.DG();
-                    for (int j = 0; j < WIDTH_PER_PLAYER; j++)
+                    for (int j = 0; j < g.players[i].hand.Count; j++)
                     {
-                        if (j < g.players[i].hand.Count && validator(g.players[i].hand, j, g.trumps, g.trick))
+                        if (validator(h, g.players[i].hand[j], g.trumps, g.trick))
                         {
                             _printer.P(HumanPlayerController.cardChoiceLetters[j]);
                         }
@@ -213,7 +202,7 @@ namespace ProjektLS22
                             _printer.S(1);
                         }
                     }
-                    _printer.R();
+                    _printer.R().S(WIDTH_PER_PLAYER - g.players[i].hand.Count);
                 }
                 else
                 {
@@ -224,7 +213,7 @@ namespace ProjektLS22
 
         public static void PrintTrick(List<Card> trick, int activePlayer)
         {
-            Card[] playerCards = new Card[3];
+            Card?[] playerCards = new Card?[3];
             for (int i = 0; i < trick.Count; i++)
             {
                 playerCards[_PPlus(activePlayer, 3 - trick.Count + i)] = trick[i];
@@ -232,19 +221,21 @@ namespace ProjektLS22
             _printer.S(14);
             for (int i = 0; i < 3; i++)
             {
-                if (playerCards[i] != null)
-                    _printer.C(playerCards[i]).S(6);
+                if (playerCards[i].HasValue)
+                    _printer.C(playerCards[i].Value).S(6);
                 else
                     _printer.S(7);
             }
             _printer.NL();
         }
-        public static void PrintValidChoices(List<Card> cards, Card trumps, List<Card> trick, Func<List<Card>, int, Card, List<Card>, bool> validator)
+        public static void PrintValidChoices(Pile hand, Card? trumps, List<Card> trick, Func<Pile, Card, Card?, List<Card>, bool> validator)
         {
             _printer.H();
-            for (int i = 0; i < cards.Count; i++)
+            List<Card> sorted = new List<Card>(hand.Enumerate());
+            _SortCards(ref sorted, trumps.HasValue ? trumps.Value.Suit : null);
+            for (int i = 0; i < hand.Count; i++)
             {
-                if (validator(cards, i, trumps, trick))
+                if (validator(hand, sorted[i], trumps, trick))
                 {
                     _printer.P(HumanPlayerController.cardChoiceLetters[i]);
                 }

@@ -1,23 +1,24 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using static ProjektLS22.Utils;
 
 namespace ProjektLS22
 {
     class RandomAI : PlayerController
     {
-        public override int ChooseTrumps()
+        public RandomAI(Player p) : base(p, false) { }
+        public override Card? ChooseTrumps()
         {
-            return _rand.Next(-1, 7);
+            return Hand.Enumerate().ElementAt(_rand.Next(Hand.Count));
         }
-
-        public override int ChooseTalon(Card trumps, List<Card> talon)
+        public override Card ChooseTalon(Card trumps, Pile talon)
         {
-            return _rand.Next(player.hand.Count);
+            return Hand.Enumerate().ElementAt(_rand.Next(Hand.Count));
         }
-        public override int ChoosePlay(List<Card> trick, Card trumps)
+        public override Card ChoosePlay(List<Card> trick, Card trumps)
         {
-            return _rand.Next(player.hand.Count);
+            return Hand.Enumerate().ElementAt(_rand.Next(Hand.Count));
         }
     }
 }

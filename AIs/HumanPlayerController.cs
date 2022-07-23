@@ -8,14 +8,10 @@ namespace ProjektLS22
     class HumanPlayerController : PlayerController
     {
         public static readonly string cardChoiceLetters = "QWERTASDFGHJ";
-
-        public HumanPlayerController()
+        public HumanPlayerController(Player p) : base(p, true) { }
+        public override void GetOptions(Game.Phase phase, int step, Card? trumps, List<Card> trick)
         {
-            isHuman = true;
-        }
-        public override void GetOptions(Game.Phase phase, int step, Card trumps, List<Card> trick)
-        {
-            _printer.P($"{_playerNames[player.index]}: ");
+            _printer.P($"{_playerNames[Index]}: ");
             switch (phase)
             {
                 case Game.Phase.BEGIN:
@@ -23,13 +19,13 @@ namespace ProjektLS22
                         if (step == 1)
                         {
                             _printer.P("| Vyber trumf ");
-                            Renderer.PrintValidChoices(player.hand, trumps, trick, _ValidTrump);
+                            Renderer.PrintValidChoices(Hand, trumps, trick, _TrumpValidator);
                             _printer.P(" | Vyber z ").H("Lidu |");
                         }
                         else if (step == 3)
                         {
                             _printer.P("| Odhoď do talonu ");
-                            Renderer.PrintValidChoices(player.hand, trumps, trick, _ValidTalon);
+                            Renderer.PrintValidChoices(Hand, trumps, trick, _TalonValidator);
                             _printer.P(" |");
                         }
                         break;
@@ -37,33 +33,51 @@ namespace ProjektLS22
                 case Game.Phase.GAME:
                     {
                         _printer.P("| Zahraj kartu ");
-                        Renderer.PrintValidChoices(player.hand, trumps, trick, _ValidPlay);
+                        Renderer.PrintValidChoices(Hand, trumps, trick, _PlayValidator);
                         _printer.P(" |");
                         break;
                     }
             }
         }
 
-        public override int ChooseTrumps()
+        public override Card? ChooseTrumps()
         {
-            ConsoleKeyInfo k = Console.ReadKey(true);
-            if (k.Key == ConsoleKey.L)
-                return -1;
-            int choice = cardChoiceLetters.IndexOf(char.ToUpper(k.KeyChar));
-            if (choice == -1 || choice >= 7)
-                return -2;
-            return choice;
+            List<Card> sorted = new List<Card>(Hand.Enumerate());
+            _SortCards(ref sorted, null);
+            int choice = -1;
+            do
+            {
+                ConsoleKeyInfo k = Console.ReadKey(true);
+                if (k.Key == ConsoleKey.L)
+                    return null;
+                choice = cardChoiceLetters.IndexOf(char.ToUpper(k.KeyChar));
+            } while (choice == -1 || choice >= 7);
+            return sorted[choice];
         }
 
-        public override int ChooseTalon(Card trumps, List<Card> talon)
+        public override Card ChooseTalon(Card trumps, Pile talon)
         {
-            ConsoleKeyInfo k = Console.ReadKey(true);
-            return cardChoiceLetters.IndexOf(char.ToUpper(k.KeyChar));
+            List<Card> sorted = new List<Card>(Hand.Enumerate());
+            _SortCards(ref sorted, trumps.Suit);
+            int choice = -1;
+            do
+            {
+                ConsoleKeyInfo k = Console.ReadKey(true);
+                choice = cardChoiceLetters.IndexOf(char.ToUpper(k.KeyChar));
+            } while (choice == -1);
+            return sorted[choice];
         }
-        public override int ChoosePlay(List<Card> trick, Card trumps)
+        public override Card ChoosePlay(List<Card> trick, Card trumps)
         {
-            ConsoleKeyInfo k = Console.ReadKey(true);
-            return cardChoiceLetters.IndexOf(char.ToUpper(k.KeyChar));
+            List<Card> sorted = new List<Card>(Hand.Enumerate());
+            _SortCards(ref sorted, trumps.Suit);
+            int choice = -1;
+            do
+            {
+                ConsoleKeyInfo k = Console.ReadKey(true);
+                choice = cardChoiceLetters.IndexOf(char.ToUpper(k.KeyChar));
+            } while (choice == -1);
+            return sorted[choice];
         }
     }
 }

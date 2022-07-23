@@ -36,59 +36,58 @@ namespace ProjektLS22
 
         public static readonly string[] _playerNames = { "Jarda", "Franta", "Karel" };
 
-        public static void _SortCards(ref List<Card> cards, Suit trumps, bool seven)
+        public static void _SortCards(ref List<Card> cards, Suit? trumps)
         {
-            cards.Sort(0, (seven ? 7 : cards.Count), Comparer<Card>.Create((Card a, Card b) =>
+            cards.Sort(Comparer<Card>.Create((Card a, Card b) =>
             {
-                int res = 0;
-                res = CompareEquals(a.suit, b.suit, trumps);
-                if (res != 0) return res;
-                foreach (Suit s in Suit.ALL)
+                if (a.SameSuit(b))
+                    return a.Value - b.Value;
+                if (trumps.HasValue)
                 {
-                    res = CompareEquals(a.suit, b.suit, s);
-                    if (res != 0) return res;
+                    if (a.Suit == trumps)
+                        return -1;
+                    if (b.Suit == trumps)
+                        return 1;
                 }
-                return a.value.strength - b.value.strength;
+                return a.Suit - b.Suit;
             }));
         }
+        public static Func<Pile, Card, Card?, List<Card>, bool> _TrumpValidator = (_, _, _, _) => true;
+        public static Func<Pile, Card, Card?, List<Card>, bool> _TalonValidator = (_, c, t, _) => _ValidTalon(c, t.Value);
+        public static Func<Pile, Card, Card?, List<Card>, bool> _PlayValidator = (h, c, trumps, trick) => _ValidPlay(h, c, trumps.Value.Suit, trick.ToArray(), trick.Count);
 
-        static int CompareEquals(Object a, Object b, Object compareTo)
+        public static bool _ValidTalon(Card selection, Card trumps)
         {
-            return CompareBool(a == compareTo, b == compareTo);
+            return selection != trumps && !selection.Value.GivesPoints;
         }
 
-        static int CompareBool(bool a, bool b)
+        public static bool _ValidPlay(Pile hand, Card selection, Suit trumps, Card[] trick, int trickCount)
         {
-            if (a == b)
-                return 0;
-            return a ? -1 : 1;
-        }
-
-        public static bool _ValidTalon(List<Card> hand, int i, Card trumps, List<Card> trick)
-        {
-            Card c = hand[i];
-            return c != trumps && !c.value.ten;
-        }
-
-        public static bool _ValidTrump(List<Card> hand, int i, Card trumps, List<Card> trick)
-        {
-            return i < 7;
-        }
-
-        public static bool _ValidPlay(List<Card> hand, int i, Card trumps, List<Card> trick)
-        {
-            if (trick.Count == 0)
+            if (trickCount == 0)
                 return true;
-            Card selected = hand[i];
             Card first = trick[0];
-            Card best = _BestFromFirstTwo(trumps, trick);
-            if (hand.Exists(first.SameSuit))
+            Card best = _BestFromFirstTwo(trumps, trick, trickCount);
+            if (hand.HasAny(first.Suit))
             {
-                return ValidPlayOn(hand, selected, first.suit, best);
+                if (best.SameSuit(first) && hand.HasAny(best.SameSuitButHigher))
+                {
+                    return best.SameSuitButHigher.HasAny(selection);
+                }
+                else
+                {
+                    return first.SameSuit(selection);
+                }
             }
-            else if (hand.Exists(trumps.SameSuit))
+            else if (hand.HasAny(trumps))
             {
-                return ValidPlayOn(hand, selected, trumps.suit, best);
+                if (best.Suit == trumps && hand.HasAny(best.SameSuitButHigher))
+                {
+                    return best.SameSuitButHigher.HasAny(selection);
+                }
+                else
+                {
+                    return selection.Suit == trumps;
+                }
             }
             else
             {
@@ -96,18 +95,18 @@ namespace ProjektLS22
             }
         }
 
-        public static Card _BestFromFirstTwo(Card trumps, List<Card> trick)
+        public static Card _BestFromFirstTwo(Suit trumps, Card[] trick, int trickCount)
         {
             Card first = trick[0];
-            if (trick.Count > 1)
+            if (trickCount > 1)
             {
                 Card second = trick[1];
                 if (first.SameSuit(second))
                 {
-                    if (first.LowerThan(second))
+                    if (first.Value < second.Value)
                         return second;
                 }
-                else if (trumps.SameSuit(second))
+                else if (second.Suit == trumps)
                 {
                     return second;
                 }
@@ -115,38 +114,26 @@ namespace ProjektLS22
             return first;
         }
 
-        static bool ValidPlayOn(List<Card> hand, Card selected, Suit suit, Card best)
+        public static int _TrickWinner(Card[] trick, Suit trumps)
         {
-            if (suit.HasCard(best) && hand.Exists(best.SameSuitButLowerThan))
-            {
-                return best.SameSuitButLowerThan(selected);
-            }
-            else
-            {
-                return suit.HasCard(selected);
-            }
+            return trick.Select((c, i) => (((c.Suit == trumps ? 20 : (trick[0].SameSuit(c) ? 10 : 0)) + c.Value), i)).Max().i;
         }
 
-        public static int _TrickWinner(List<Card> trick, Suit trumps)
-        {
-            return trick.Select((c, i) => (((trumps.HasCard(c) ? 200 : (trick[0].SameSuit(c) ? 100 : 0)) + c.value.strength), i)).Max().i;
-        }
-
-        public static string _FormatCards(IEnumerable<Card> s, Suit trumps)
+        public static string _FormatCards(IEnumerable<Card> s, Suit? trumps)
         {
             List<Card> l = new List<Card>(s);
-            _SortCards(ref l, trumps, false);
+            _SortCards(ref l, trumps);
             StringBuilder sb = new StringBuilder();
-            Suit lastSuit = null;
+            Suit? lastSuit = null;
             foreach (Card c in s)
             {
-                if (c.suit != lastSuit)
+                if (!lastSuit.HasValue || c.Suit != lastSuit.Value)
                 {
-                    lastSuit = c.suit;
+                    lastSuit = c.Suit;
                     sb.Append(' ');
-                    sb.Append(c.suit.prefix);
+                    sb.Append(c.Suit.Prefix);
                 }
-                sb.Append(c.value.symbol);
+                sb.Append(c.Value.Symbol);
             }
             return sb.ToString();
         }

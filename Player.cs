@@ -13,10 +13,10 @@ namespace ProjektLS22
         public List<Card> discard = new List<Card>();
         public List<Card> marriages = new List<Card>();
 
-        public Player(int index, PlayerController controller)
+        public Player(int index, PlayerController.Type controller)
         {
             this.index = index;
-            this.controller = controller;
+            this.controller = controller.GetNew(this);
         }
 
 

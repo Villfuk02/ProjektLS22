@@ -129,9 +129,9 @@ namespace ProjektLS22
         {
             ConsoleColor f = Console.ForegroundColor;
             ConsoleColor b = Console.BackgroundColor;
-            Console.BackgroundColor = card.suit.color;
+            Console.BackgroundColor = card.Suit.Color;
             Console.ForegroundColor = ConsoleColor.Black;
-            P(card.value.symbol);
+            P(card.Value.Symbol);
             Console.BackgroundColor = b;
             Console.ForegroundColor = f;
             return this;
@@ -148,9 +148,9 @@ namespace ProjektLS22
                 ConsoleColor b = Console.BackgroundColor;
                 foreach (Card c in cards)
                 {
-                    Console.BackgroundColor = c.suit.color;
+                    Console.BackgroundColor = c.Suit.Color;
                     Console.ForegroundColor = ConsoleColor.Black;
-                    P(c.value.symbol);
+                    P(c.Value.Symbol);
                 }
                 Console.BackgroundColor = b;
                 Console.ForegroundColor = f;

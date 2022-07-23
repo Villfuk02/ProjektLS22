@@ -8,62 +8,66 @@ namespace ProjektLS22
 {
     public class SmartAI : GameStateKeepingAI
     {
-        public override int ChooseTrumps()
+        public SmartAI(Player p) : base(p) { }
+
+        public override Card? ChooseTrumps()
         {
-            Dictionary<Suit, int> strengths = new Dictionary<Suit, int>(from s in Suit.ALL select new KeyValuePair<Suit, int>(s, 0));
-            for (int i = 0; i < 7; i++)
+            int[] strengths = new int[4];
+            foreach (Card c in Hand.Enumerate())
             {
-                Card c = player.hand[i];
-                strengths[c.suit] += c.value.strength;
+                strengths[c.Suit] += c.Value.Strength;
             }
-            KeyValuePair<Suit, int> max = new KeyValuePair<Suit, int>(null, 0);
+            Suit? maxSuit = null;
+            int maxStrength = 0;
             int average = 0;
-            foreach (KeyValuePair<Suit, int> p in strengths)
+            for (int i = 0; i < 4; i++)
             {
-                if (p.Value > max.Value)
-                    max = p;
-                average += p.Value;
+                if (strengths[i] > maxStrength)
+                {
+                    maxStrength = strengths[i];
+                    maxSuit = new Suit(i);
+                }
+                average += strengths[i];
             }
             average /= 4;
-            if (max.Value < 37 || max.Value - average < 10)
+            if (maxStrength < 37 || maxStrength - average < 10)
             {
-                return -1;
+                return null;
             }
-            for (int i = 0; i < 7; i++)
+            foreach (Card c in Hand.Enumerate())
             {
-                if (max.Key.HasCard(player.hand[i]))
-                    return i;
+                if (maxSuit.Value == c.Suit)
+                    return c;
             }
             //WILL NEVER HAPPEN
-            return -2;
+            return null;
         }
 
-        public override int ChooseTalon(Card trumps, List<Card> talon)
+        public override Card ChooseTalon(Card trumps, Pile talon)
         {
-            Dictionary<Suit, int> strengths = new Dictionary<Suit, int>(from s in Suit.ALL select new KeyValuePair<Suit, int>(s, 0));
-            Dictionary<Suit, bool> married = new Dictionary<Suit, bool>(from s in Suit.ALL select new KeyValuePair<Suit, bool>(s, player.hand.Count(c => s.HasCard(c) && c.value.marriage) == 2));
-            for (int i = 0; i < player.hand.Count; i++)
+            int[] strengths = new int[4];
+            int[] marriage = new int[4];
+            foreach (Card c in Hand.Enumerate())
             {
-                Card c = player.hand[i];
-                strengths[c.suit] += c.value.strength;
+                strengths[c.Suit] += c.Value.Strength;
+                if (c.Value.Marriage)
+                    marriage[c.Suit]++;
             }
-            strengths[trumps.suit] = 999;
-            IEnumerable<(Card, int)> sortedCards = player.hand.Select((c, i) => (c, i))
-                                                              .Where(v => _ValidTalon(player.hand, v.i, trumps, null))
-                                                              .OrderBy(v => strengths[v.c.suit])
-                                                              .ThenBy(v => v.c.value.strength);
-            bool IsNotMarried((Card, int) v)
+            strengths[trumps.Suit] = 999;
+            IEnumerable<Card> sortedCards = Hand.Enumerate().Where(c => _ValidTalon(c, trumps))
+                                                            .OrderBy(c => strengths[c.Suit])
+                                                            .ThenBy(c => c.Value.Strength);
+            bool IsNotMarried(Card c)
             {
-                return !(v.Item1.value.marriage && married[v.Item1.suit]);
+                return !(c.Value.Marriage && marriage[c.Suit] == 2);
             }
             if (sortedCards.Any(IsNotMarried))
-                return sortedCards.First(IsNotMarried).Item2;
+                return sortedCards.First(IsNotMarried);
             else
-                return sortedCards.First().Item2;
+                return sortedCards.First();
         }
-        public override int ChoosePlay(List<Card> trick, Card trumps)
+        public override Card ChoosePlay(List<Card> trick, Card trumps)
         {
-            int[] ratings = new int[player.hand.Count];
             Func<Card, List<Card>, Suit, int> rateOption = null;
             switch (trick.Count)
             {
@@ -88,40 +92,38 @@ namespace ProjektLS22
                         break;
                     }
             }
-
-            for (int i = 0; i < player.hand.Count; i++)
+            Card best = new Card(0);
+            int bestRating = int.MinValue;
+            foreach (Card c in Hand.Enumerate())
             {
-                Card c = player.hand[i];
-                //discourage playing high cards
-                ratings[i] -= c.value.strength;
-                if (_ValidPlay(player.hand, i, trumps, trick))
+                if (_ValidPlay(Hand, c, trumps.Suit, trick.ToArray(), trick.Count))
                 {
-                    ratings[i] += rateOption(c, trick, trumps.suit);
-                }
-                else
-                {
-                    //block invalid cards
-                    ratings[i] = -1_000_000_000;
+                    int rating = rateOption(c, trick, trumps.Suit) - c.Value.Strength;
+                    if (rating > bestRating)
+                    {
+                        best = c;
+                        bestRating = rating;
+                    }
                 }
             }
-            return ratings.Select((n, i) => (n, i)).Max().i;
+            return best;
         }
 
         int RateFirstCardOffense(Card c, List<Card> trick, Suit trumps)
         {
             int rating = 0;
             //X - A risk -1M
-            if (c.value == Value.DESET)
+            if (c.Value == Value.TEN)
             {
-                if (others.Contains(new Card(c.suit, Value.ESO)))
+                if (others.ToPile().HasAny(new Card(c.Suit, Value.ACE)))
                 {
                     rating -= 1_000_000;
                 }
             }
             //A/X - trump risk -500K*expected
             float[] trumpedChances = new float[3];
-            OtherPlayersSuitInfo suitInfo = GetOtherPlayersSuitInfo(c.suit);
-            if (c.suit != trumps && others.Any(trumps.HasCard))
+            OtherPlayersSuitInfo suitInfo = GetOtherPlayersSuitInfo(c.Suit);
+            if (c.Suit != trumps && others.ToPile().HasAny(trumps))
             {
                 OtherPlayersSuitInfo trumpInfo = GetOtherPlayersSuitInfo(trumps);
                 for (int j = 1; j <= 2; j++)
@@ -129,22 +131,22 @@ namespace ProjektLS22
                     trumpedChances[j] = suitInfo.noneChance[j] * (1 - trumpInfo.noneChance[j]);
                 }
             }
-            if (c.value.ten)
+            if (c.Value.GivesPoints)
             {
                 rating -= (int)(500_000 * (trumpedChances[1] + trumpedChances[2]));
             }
             //A - X force take +20K*chance
-            if (c.value == Value.ESO)
+            if (c.Value == Value.ACE)
             {
-                if (others.Contains(new Card(c.suit, Value.DESET)))
+                if (others.ToPile().HasAny(new Card(c.Suit, Value.TEN)))
                 {
                     float expected = 0;
                     for (int j = 1; j <= 2; j++)
                     {
-                        if (!players[_PPlus(player.index, j)].Contains(new Card(c.suit, Value.DESET)))
+                        if (!players[_PPlus(Index, j)].ToPile().HasAny(new Card(c.Suit, Value.TEN)))
                             continue;
                         float tenChance = 0;
-                        if (!players[_PPlus(player.index, 3 - j)].Contains(new Card(c.suit, Value.DESET)))
+                        if (!players[_PPlus(Index, 3 - j)].ToPile().HasAny(new Card(c.Suit, Value.TEN)))
                         {
                             if (suitInfo.max[j] == 1)
                             {
@@ -169,10 +171,10 @@ namespace ProjektLS22
                 }
             }
             //trump - -5K
-            if (trumps.HasCard(c))
+            if (c.Suit == trumps)
                 rating -= 5_000;
             //any - trump pull +1K*expected
-            if (trumps.HasCard(c))
+            if (c.Suit == trumps)
             {
                 rating += (int)(1_000 * (2 - suitInfo.noneChance[1] - suitInfo.noneChance[2]));
             }
@@ -187,20 +189,20 @@ namespace ProjektLS22
         {
             int rating = 0;
             //-10K if enemy could steal X or A
-            if (c.value.ten)
+            if (c.Value.GivesPoints)
             {
-                if (prevPlayer.Contains(new Card(c.suit, Value.ESO))
-                    || (c.suit != trumps && nextPlayer.Any(trumps.HasCard)
-                    && nextPlayer.Count(c.SameSuit) == others.Count(c.SameSuit)))
+                if (prevPlayer.ToPile().HasAny(new Card(c.Suit, Value.ACE))
+                    || (c.Suit != trumps && nextPlayer.ToPile().HasAny(trumps)
+                    && nextPlayer.ToPile().Where(c.Suit).Count == others.ToPile().Where(c.Suit).Count))
                 {
                     rating -= 10_000;
                 }
             }
             //relative harm
-            OtherPlayersSuitInfo suitInfo = GetOtherPlayersSuitInfo(c.suit);
+            OtherPlayersSuitInfo suitInfo = GetOtherPlayersSuitInfo(c.Suit);
             rating += (int)(1000 * (suitInfo.noneChance[2] - suitInfo.noneChance[1]));
             //trump - -5K
-            if (trumps.HasCard(c))
+            if (c.Suit == trumps)
                 rating -= 5_000;
             return rating;
         }
@@ -208,31 +210,29 @@ namespace ProjektLS22
         int RateFirstCardSecondDefense(Card c, List<Card> trick, Suit trumps)
         {
             int rating = 0;
-            OtherPlayersSuitInfo suitInfo = GetOtherPlayersSuitInfo(c.suit);
+            OtherPlayersSuitInfo suitInfo = GetOtherPlayersSuitInfo(c.Suit);
             OtherPlayersSuitInfo trumpInfo = GetOtherPlayersSuitInfo(trumps);
-            HashSet<Card> guaranteed = new HashSet<Card>(others);
-            guaranteed.ExceptWith(prevPlayer);
-            HashSet<Card> possible = new HashSet<Card>(nextPlayer);
-            possible.ExceptWith(guaranteed);
+            Pile guaranteed = ((Pile)others).Without(prevPlayer);
+            Pile possible = ((Pile)nextPlayer).Without(guaranteed);
             //-10K if enemy could steal X or A
-            if (c.value.ten)
+            if (c.Value.GivesPoints)
             {
-                if (possible.Contains(new Card(c.suit, Value.ESO)) || (c.suit != trumps && trumpInfo.max[1] > 0 && trumpInfo.min[1] <= 0))
+                if (possible.HasAny(new Card(c.Suit, Value.ACE)) || (c.Suit != trumps && trumpInfo.max[1] > 0 && trumpInfo.min[1] <= 0))
                 {
                     rating -= 10_000;
                 }
             }
             //+10K * chance to steal X or A
-            if (c.suit != trumps)
+            if (c.Suit != trumps)
             {
-                if (!guaranteed.Any(d => c.SameSuitButLowerThan(d) && !d.value.ten))
+                if (!guaranteed.HasAny(c.SameSuitButLower.Without(Value.GivesPointsMask)))
                 {
                     float stealChance = 0;
-                    float noLowerChance = OneHalfPower(possible.Count(d => c.SameSuitButLowerThan(d) && !d.value.ten));
-                    if (guaranteed.Contains(new Card(c.suit, Value.DESET)) || guaranteed.Contains(new Card(c.suit, Value.ESO)))
+                    float noLowerChance = OneHalfPower(possible.Where(c.SameSuitButLower.Without(Value.GivesPointsMask)).Count);
+                    if (guaranteed.HasAny(Value.GivesPointsMask.Where(c.Suit)))
                     {
                         float takeChance = 0;
-                        if (possible.Contains(new Card(c.suit, Value.ESO)))
+                        if (possible.HasAny(new Card(c.Suit, Value.ACE)))
                         {
                             takeChance += 0.5f;
                         }
@@ -241,17 +241,17 @@ namespace ProjektLS22
                     }
                     else
                     {
-                        if (possible.Contains(new Card(c.suit, Value.DESET)))
+                        if (possible.HasAny(new Card(c.Suit, Value.TEN)))
                         {
                             float takeChance = 0;
-                            if (possible.Contains(new Card(c.suit, Value.ESO)))
+                            if (possible.HasAny(new Card(c.Suit, Value.ACE)))
                             {
                                 takeChance += 0.5f;
                             }
                             takeChance += suitInfo.noneChance[2] * (1 - trumpInfo.noneChance[2]);
                             stealChance += noLowerChance * takeChance * 0.5f;
                         }
-                        if (possible.Contains(new Card(c.suit, Value.ESO)))
+                        if (possible.HasAny(new Card(c.Suit, Value.ACE)))
                         {
                             float takeChance = 0;
                             takeChance += suitInfo.noneChance[2] * (1 - trumpInfo.noneChance[2]);
@@ -266,7 +266,7 @@ namespace ProjektLS22
             rating += (int)(1000 * (suitInfo.noneChance[1] - suitInfo.noneChance[2]));
 
             //trump - -5K
-            if (trumps.HasCard(c))
+            if (c.Suit == trumps)
                 rating -= 5_000;
             return rating;
         }
@@ -277,38 +277,35 @@ namespace ProjektLS22
             Card first = trick[0];
             List<Card> updatedTrick = new List<Card> { first, c };
             //100 * excpected points * (win chance - loss chance)
-            int pts = 10 * updatedTrick.Count(d => d.value.ten);
-            int bestSoFar = _TrickWinner(updatedTrick, trumps);
+            int pts = 10 * updatedTrick.Count(d => d.Value.GivesPoints);
+            int bestSoFar = _TrickWinner(updatedTrick.ToArray(), trumps);
             Card best = updatedTrick[bestSoFar];
 
-            float winChance;
+            float myWinChance;
             if (IsTrickIndexEnemyWhenImSecond(bestSoFar) == IsTrickIndexEnemyWhenImSecond(2))
             {
-                winChance = IsTrickIndexEnemyWhenImSecond(bestSoFar) ? 0 : 1;
+                myWinChance = IsTrickIndexEnemyWhenImSecond(bestSoFar) ? 0 : 1;
             }
             else
             {
-                HashSet<Card> guaranteed = new HashSet<Card>(others);
-                guaranteed.ExceptWith(prevPlayer);
-                HashSet<Card> possible = new HashSet<Card>(nextPlayer);
-                possible.ExceptWith(guaranteed);
-                float beatsBestChance;
-                OtherPlayersSuitInfo suitInfo = GetOtherPlayersSuitInfo(first.suit);
-                bool WillWinTrick(Card d)
+                Pile guaranteed = ((Pile)others).Without(prevPlayer);
+                Pile possible = ((Pile)nextPlayer).Without(guaranteed);
+                float lastBeatsBestChance;
+                OtherPlayersSuitInfo suitInfo = GetOtherPlayersSuitInfo(first.Suit);
+                bool WillLastWinTrick(Card d)
                 {
-                    return _TrickWinner(new List<Card> { first, c, d }, trumps) == 2;
+                    return _TrickWinner(new Card[] { first, c, d }, trumps) == 2;
                 }
-                int winningCards = possible.Count(d => first.SameSuit(d) && WillWinTrick(d));
+                int winningCards = possible.Enumerate().Count(d => first.SameSuit(d) && WillLastWinTrick(d));
                 if (suitInfo.min[1] > 0)
                 {
-                    if (guaranteed.Any(d => first.SameSuit(d) && WillWinTrick(d)))
+                    if (guaranteed.Enumerate().Any(d => first.SameSuit(d) && WillLastWinTrick(d)))
                     {
-                        beatsBestChance = 1;
+                        lastBeatsBestChance = 1;
                     }
                     else
                     {
-
-                        beatsBestChance = OneHalfPower(winningCards);
+                        lastBeatsBestChance = OneHalfPower(winningCards);
                     }
                 }
                 else
@@ -322,30 +319,33 @@ namespace ProjektLS22
                     {
                         beatsBestWithSuit = 0;
                     }
-                    if (guaranteed.Any(d => trumps.HasCard(d) && WillWinTrick(d)))
+                    if (guaranteed.Enumerate().Any(d => d.Suit == trumps && WillLastWinTrick(d)))
                     {
-                        beatsBestChance = suitInfo.noneChance[2] + (1 - suitInfo.noneChance[2]) * beatsBestWithSuit;
+                        lastBeatsBestChance = suitInfo.noneChance[2] + (1 - suitInfo.noneChance[2]) * beatsBestWithSuit;
                     }
                     else
                     {
-                        int winningTrumpCards = possible.Count(d => trumps.HasCard(d) && _TrickWinner(new List<Card> { first, c, d }, trumps) != 1);
-                        beatsBestChance = suitInfo.noneChance[2] * (1 - OneHalfPower(winningTrumpCards)) + (1 - suitInfo.noneChance[2]) * beatsBestWithSuit;
+                        int winningTrumpCards = possible.Enumerate().Count(d => d.Suit == trumps && WillLastWinTrick(d));
+                        lastBeatsBestChance = suitInfo.noneChance[2] * (1 - OneHalfPower(winningTrumpCards)) + (1 - suitInfo.noneChance[2]) * beatsBestWithSuit;
                     }
                 }
-                winChance = 0;
                 if (!IsTrickIndexEnemyWhenImSecond(2))
                 {
-                    winChance += beatsBestChance;
+                    myWinChance = lastBeatsBestChance;
                 }
-                if (!IsTrickIndexEnemyWhenImSecond(bestSoFar))
+                else if (!IsTrickIndexEnemyWhenImSecond(bestSoFar))
                 {
-                    winChance += 1 - beatsBestChance;
+                    myWinChance = 1 - lastBeatsBestChance;
+                }
+                else
+                {
+                    myWinChance = 0;
                 }
             }
-            rating += (int)(100 * (2 * winChance - 1) * (pts + 1));
+            rating += (int)(100 * (2 * myWinChance - 1) * (pts + 1));
 
             //penalty for playing A when X is not secured
-            if (c.value == Value.ESO && others.Contains(new Card(c.suit, Value.DESET)))
+            if (c.Value == Value.ACE && others.ToPile().HasAny(new Card(c.Suit, Value.TEN)))
             {
                 rating -= 1000;
             }
@@ -358,40 +358,40 @@ namespace ProjektLS22
             int rating = 0;
             List<Card> updatedTrick = new List<Card>(trick);
             updatedTrick.Add(c);
-            int winner = _TrickWinner(updatedTrick, trumps);
+            int winner = _TrickWinner(updatedTrick.ToArray(), trumps);
             if (winner == 2 || (!isOffense && (winner == (isFirstDefense ? 0 : 1))))
             {
-                if (c.value == Value.DESET && others.Contains(new Card(c.suit, Value.ESO)))
+                if (c.Value == Value.TEN && others.ToPile().HasAny(new Card(c.Suit, Value.ACE)))
                 {
                     rating += 100_000;
                 }
-                else if (c.value.ten && c.suit != trumps)
+                else if (c.Value.GivesPoints && c.Suit != trumps)
                 {
-                    rating += 10_000 * (others.Count(trumps.HasCard) - us.Count(trumps.HasCard));
+                    rating += 10_000 * (others.ToPile().Where(trumps).Count - us.ToPile().Where(trumps).Count);
                 }
             }
-            else if (c.value.ten)
+            else if (c.Value.GivesPoints)
             {
                 rating -= 1_000_000;
             }
-            if (me.Any(d => c.SameSuit(d) && d.value.ten))
+            if (me.ToPile().HasAny(Value.GivesPointsMask.Where(c.Suit)))
             {
-                rating += 100 * (me.Count(c.SameSuit)) - 1_000;
+                rating += 100 * (me.ToPile().Where(c.Suit).Count) - 1_000;
             }
             else
             {
-                rating += 1_000 - 100 * (me.Count(c.SameSuit));
+                rating += 1_000 - 100 * (me.ToPile().Where(c.Suit).Count);
             }
             return rating;
         }
 
         OtherPlayersSuitInfo GetOtherPlayersSuitInfo(Suit s)
         {
-            int totalCards = others.Count(s.HasCard);
+            int totalCards = others.ToPile().Where(s).Count;
             int[] maxCards = new int[3];
             for (int p = 1; p <= 2; p++)
             {
-                maxCards[p] = players[_PPlus(player.index, p)].Count(s.HasCard);
+                maxCards[p] = players[_PPlus(Index, p)].ToPile().Where(s).Count;
             }
             return new OtherPlayersSuitInfo(totalCards, maxCards);
         }
