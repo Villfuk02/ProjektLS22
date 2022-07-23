@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace ProjektLS22
 {
@@ -165,6 +166,23 @@ namespace ProjektLS22
             S(count);
             Console.BackgroundColor = b;
             return this;
+        }
+        //PRINT FORMATTED
+        public Printer PF(string text)
+        {
+            string[] parts = text.Split('*');
+            for (int i = 0; i < parts.Length; i++)
+            {
+                R();
+                if (i % 2 == 1)
+                    W();
+                string[] highlights = parts[i].Split('|');
+                for (int j = 0; j < highlights.Length; j++)
+                {
+                    P(highlights[j]).H();
+                }
+            }
+            return R();
         }
     }
 }

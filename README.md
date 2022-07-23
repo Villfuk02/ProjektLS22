@@ -4,11 +4,6 @@ uhhhh
 
 ## TODO
 
-- optimize simulation
-- make bots unable to modify game
-- encapsulation
-- sprinkle *in* everywhere
-- pravidla
 - imports
 - prog dokumentace
 - benchmarks

@@ -318,7 +318,7 @@ public class Game
                 }
             case 1:
                 {
-                    Card choice = players[activePlayer].controller.ChoosePlay(trick, trumps.Value);
+                    Card choice = players[activePlayer].controller.ChoosePlay(new List<Card>(trick), trumps.Value);
                     if (players[activePlayer].hand.Contains(choice) && _ValidPlay(new Pile(players[activePlayer].hand), choice, trumps.Value.Suit, trick.ToArray(), trick.Count))
                     {
                         players[activePlayer].hand.Remove(choice);
@@ -331,7 +331,7 @@ public class Game
                         trick.Add(choice);
                         foreach (Player p in players)
                         {
-                            p.controller.PlaysCard(activePlayer, choice, trick, trumps.Value, marriage);
+                            p.controller.PlaysCard(activePlayer, choice, new List<Card>(trick), trumps.Value, marriage);
                         }
                         NextPlayer();
                         if (trick.Count != 3)
@@ -356,7 +356,7 @@ public class Game
                     int winner = _PPlus(activePlayer, _TrickWinner(trick.ToArray(), trumps.Value.Suit));
                     foreach (Player p in players)
                     {
-                        p.controller.TakesTrick(winner, trick);
+                        p.controller.TakesTrick(winner, new List<Card>(trick));
                     }
                     info = winner;
                     Step($"{_playerNames[winner]} bere štych...", 4000);

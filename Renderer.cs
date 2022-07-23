@@ -106,7 +106,7 @@ namespace ProjektLS22
             if (g.waitingForPlayer)
             {
                 _printer.R().NL();
-                g.players[g.activePlayer].controller.GetOptions(g.phase, g.step, g.trumps, g.trick);
+                g.players[g.activePlayer].controller.GetOptions(g.phase, g.step, g.trumps, new List<Card>(g.trick));
             }
         }
 
