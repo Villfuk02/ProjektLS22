@@ -4,21 +4,31 @@ using System.Linq;
 
 namespace ProjektLS22
 {
+    /// <summary>
+    /// For simpler printing to the console and formatting.
+    /// </summary>
     public class Printer
     {
         public static Printer _printer = new Printer();
-        //PRINT
+        /// <summary>
+        /// Print a string.
+        /// </summary>
         public Printer P(string s)
         {
             Console.Write(s);
-
             return this;
         }
+        /// <summary>
+        /// Print a char.
+        /// </summary>
         public Printer P(char c)
         {
             Console.Write(c);
             return this;
         }
+        /// <summary>
+        /// Print a string, but padded or truncated to the given length.
+        /// </summary>
         public Printer P(string s, int len, bool alignLeft)
         {
             if (s.Length > len)
@@ -29,50 +39,67 @@ namespace ProjektLS22
                 return P(s).S(len - s.Length);
             return S(len - s.Length).P(s);
         }
+        /// <summary>
+        /// Print an int, padded or truncated to the given length.
+        /// </summary>
         public Printer P(int n, int len)
         {
             string s = n.ToString();
             return P(s, len, false);
         }
-        //SPACING
+        /// <summary>
+        /// Print a number of spaces.
+        /// </summary>
         public Printer S(int amt)
         {
             if (amt > 0)
                 return P(new string(' ', amt));
             return this;
         }
-        //BACKGROUND COLOR
+        /// <summary>
+        /// Change the background color.
+        /// </summary>
         public Printer B(ConsoleColor c)
         {
             Console.BackgroundColor = c;
             return this;
         }
-        //FOREGROUND COLOR
+        /// <summary>
+        /// Change the foreground color.
+        /// </summary>
         public Printer F(ConsoleColor c)
         {
             Console.ForegroundColor = c;
             return this;
         }
-        //RESET COLORS
+        /// <summary>
+        /// Reset foreground color to Gray and background to black.
+        /// </summary>
         public Printer R()
         {
             Console.ForegroundColor = ConsoleColor.Gray;
             Console.BackgroundColor = ConsoleColor.Black;
             return this;
         }
-        //NEW LINE
+        /// <summary>
+        /// Print one or more newlines.
+        /// </summary>
         public Printer NL(int count = 1)
         {
             Console.Write(new string('\n', count));
             return this;
         }
-        //CLEAR
+        /// <summary>
+        /// Clear the console.
+        /// </summary>
         public Printer CLR()
         {
             Console.Clear();
             return this;
         }
-        //DIGIT
+        /// <summary>
+        /// Print a single digit, substituting 'X' for numbers 10 and up.
+        /// </summary>
         public Printer D(int n)
         {
             if (n < 10)
@@ -80,31 +107,41 @@ namespace ProjektLS22
             else
                 return P('X');
         }
-        //DARK GRAY
+        /// <summary>
+        /// Change the foreground color to DarkGray.
+        /// </summary>
         public Printer DG()
         {
             Console.ForegroundColor = ConsoleColor.DarkGray;
             return this;
         }
-        //GRAY
+        /// <summary>
+        /// Change the foreground color to Gray.
+        /// </summary>
         public Printer G()
         {
             Console.ForegroundColor = ConsoleColor.Gray;
             return this;
         }
-        //WHITE
+        /// <summary>
+        /// Change the foreground color to White.
+        /// </summary>
         public Printer W()
         {
             Console.ForegroundColor = ConsoleColor.White;
             return this;
         }
-        //BLACK BACKGROUND
+        /// <summary>
+        /// Change the background color to Black.
+        /// </summary>
         public Printer B()
         {
             Console.BackgroundColor = ConsoleColor.Black;
             return this;
         }
-        //HIGHLIGHT - SWITCH COLORS
+        /// <summary>
+        /// Creates a highlight by swithcing the foreground and background colors.
+        /// </summary>
         public Printer H()
         {
             ConsoleColor c = Console.ForegroundColor;
@@ -112,20 +149,16 @@ namespace ProjektLS22
             Console.BackgroundColor = c;
             return this;
         }
+        /// <summary>
+        /// Prints a string, highlighting the first character.
+        /// </summary>
         public Printer H(string s)
         {
             return H().P(s[0]).H().P(s.Substring(1));
         }
-        //CLEAR LINE
-        public Printer CL(int lines)
-        {
-            int currentLineCursor = Console.CursorTop;
-            Console.SetCursorPosition(0, Console.CursorTop - lines + 1);
-            S(Console.WindowWidth - 1);
-            Console.SetCursorPosition(0, currentLineCursor - lines + 1);
-            return this;
-        }
-        //PRINT CARD
+        /// <summary>
+        /// Prints a card.
+        /// </summary>
         public Printer C(Card card)
         {
             ConsoleColor f = Console.ForegroundColor;
@@ -137,6 +170,9 @@ namespace ProjektLS22
             Console.ForegroundColor = f;
             return this;
         }
+        /// <summary>
+        /// Prints a collection of cards if visible, otherwise the corresponding amount of card backs (<see cref="CB"/>).
+        /// </summary>
         public Printer C(List<Card> cards, bool show)
         {
             if (!show)
@@ -158,7 +194,9 @@ namespace ProjektLS22
                 return this;
             }
         }
-        //PRINT CARD BACKS
+        /// <summary>
+        /// Print one or more card backs.
+        /// </summary>
         public Printer CB(int count = 1)
         {
             ConsoleColor b = Console.BackgroundColor;
@@ -167,7 +205,9 @@ namespace ProjektLS22
             Console.BackgroundColor = b;
             return this;
         }
-        //PRINT FORMATTED
+        /// <summary>
+        /// Prints a simple formatted string. Use *_* for white highlight and |_| for the <see cref="H"/> highlight.
+        /// </summary>
         public Printer PF(string text)
         {
             string[] parts = text.Split('*');

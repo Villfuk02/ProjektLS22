@@ -5,13 +5,19 @@ using static ProjektLS22.Utils;
 
 namespace ProjektLS22
 {
+    /// <summary>
+    /// The game settings menu.
+    /// </summary>
     public class GameSetup
     {
-        PlayerController.Type[] players = new PlayerController.Type[3] { PlayerController.HUMAN, PlayerController.SMART, PlayerController.HYBRID };
+        PlayerController.Type[] players = new PlayerController.Type[3] { PlayerController.HUMAN, PlayerController.RANDOM, PlayerController.SMART };
         enum State { Menu, Rules, Finished };
         State state = State.Menu;
         InputHandler menuHandler = new InputHandler();
         InputHandler rulesHandler = new InputHandler();
+        /// <summary>
+        /// -1 means normal mode, positive integers are the number of games to simulate
+        /// </summary>
         public static readonly int[] MODE_OPTIONS = new int[] { -1, 1000, 10_000, 100_000 };
         public int mode_selected = 0;
 
@@ -94,7 +100,7 @@ namespace ProjektLS22
             switch (state)
             {
                 case State.Menu:
-                    _printer.G().P("| ").H("Start | Změň AI ").H("Jardy, ").H("Franty nebo ").H("Karla | ").H("Pravidla | ").H("Mód: ");
+                    _printer.G().P("| ").H("Start | Změň ovladač ").H("Jardy, ").H("Franty nebo ").H("Karla | ").H("Pravidla | ").H("Mód: ");
                     if (MODE_OPTIONS[mode_selected] == -1)
                     {
                         _printer.P("normální |");

@@ -1,20 +1,15 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
-using System.Reflection.Metadata;
-using System.Security.Cryptography.X509Certificates;
-using System.Threading.Channels;
 
 namespace ProjektLS22
 {
+    /// <summary>
+    /// Stores the information a player knows about other players.
+    /// </summary>
     public abstract class PlayerPrediction
     {
         public abstract Pile ToPile();
         public abstract void Remove(Card c);
         public abstract void Remove(Pile p);
-        public abstract PlayerPrediction Copy();
         public abstract void Reset();
         public static implicit operator Pile(PlayerPrediction p) => p.ToPile();
     }
@@ -36,10 +31,6 @@ namespace ProjektLS22
         public void Set(Pile cards)
         {
             mayHave = cards;
-        }
-        public override PlayerPrediction Copy()
-        {
-            return new SinglePlayerPrediction(this);
         }
         public override void Remove(Card card)
         {
@@ -69,10 +60,6 @@ namespace ProjektLS22
             {
                 m.Reset();
             }
-        }
-        public override PlayerPrediction Copy()
-        {
-            return new JointPlayerPrediction(models.Select(m => m.Copy()).ToArray());
         }
         public override void Remove(Card card)
         {

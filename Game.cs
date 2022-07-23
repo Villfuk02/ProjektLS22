@@ -6,17 +6,18 @@ using ProjektLS22;
 using static ProjektLS22.Printer;
 using static ProjektLS22.Utils;
 
+/// <summary>
+/// Handles the actual game.
+/// </summary>
 public class Game
 {
     public int simulate;
-    Stopwatch sw = new Stopwatch();
+    Stopwatch timeSinceStart = new Stopwatch();
     TimeSpan writeStep = TimeSpan.FromSeconds(1);
     TimeSpan nextWrite = TimeSpan.Zero;
     TimeSpan lastWrite = TimeSpan.Zero;
     public enum Phase { INIT, CUT, DEAL, BEGIN, GAME, SCORE, COLLECT };
-
     public Phase phase = Phase.INIT;
-
     public List<Card> deck = new List<Card>();
     public Player[] players = new Player[3];
     public List<Card> talon = new List<Card>();
@@ -26,18 +27,24 @@ public class Game
     public int activePlayer = -1;
     public int dealer = 0;
     public int step = 0;
+    /// <summary>
+    /// Mode of showing cards to the user.<br/>
+    /// ALL - all cards are visible - when the the user is not taking part in the game<br/>
+    /// HUMAN - cards of all human players are visible - when there is exactly one human player<br/>
+    /// ACTIVE_HUMAN - only cards of the active human are visible - when there is more human players
+    /// </summary>
     public enum CardShowing { ALL, HUMAN, ACTIVE_HUMAN };
     public CardShowing cardShowing = CardShowing.ACTIVE_HUMAN;
     public bool waitingForPlayer = false;
     public string status = "";
     int wait = 0;
-
-    bool fast = false;
-
+    /// <summary>
+    /// Used to store temporary data between steps.
+    /// </summary>
     public int info = 0;
     public Game(PlayerController.Type[] playerTypes, int simulate)
     {
-        sw.Start();
+        timeSinceStart.Start();
         nextWrite += writeStep;
         this.simulate = simulate;
         int humans = 0;
@@ -80,7 +87,9 @@ public class Game
                 break;
         }
     }
-
+    /// <summary>
+    /// Handles the transition between steps.
+    /// </summary>
     public void NextStep()
     {
         int lastStep = step;
@@ -91,25 +100,9 @@ public class Game
             if (phase == Phase.COLLECT && step == 0)
             {
                 simulate--;
-                if (simulate == 0 || sw.Elapsed >= nextWrite)
+                if (simulate == 0 || timeSinceStart.Elapsed >= nextWrite)
                 {
-                    if (sw.Elapsed - lastWrite > 2 * writeStep)
-                    {
-                        nextWrite = sw.Elapsed + writeStep;
-                        _printer.F(ConsoleColor.Yellow);
-                    }
-                    else
-                    {
-                        nextWrite += writeStep;
-                        _printer.W();
-                    }
-                    _printer.P($" {sw.Elapsed.ToString(@"hh\:mm\:ss")} | ").P($"Zbývá {simulate} | ", 14, false);
-                    for (int i = 0; i < 3; i++)
-                    {
-                        _printer.P(_playerNames[i], 1, true).P(':').P($" a {players[i].offense_wins},", 9, false).P($" o {players[i].defense_wins},", 9, false).P($" C {players[i].offense_wins + players[i].defense_wins} | ", 11, false);
-                    }
-                    _printer.NL().R();
-                    lastWrite = sw.Elapsed;
+                    LogSimulationProgress();
                 }
                 if (simulate % 100 == 0)
                 {
@@ -119,7 +112,7 @@ public class Game
         }
         else if (simulate == 0)
         {
-            sw.Stop();
+            timeSinceStart.Stop();
             return;
         }
         if (simulate == -1 || (waitingForPlayer && players[activePlayer].controller.IsHuman))
@@ -128,11 +121,33 @@ public class Game
             {
                 Renderer.RenderState(this);
             }
-            if (wait > 0 && !fast)
+            if (wait > 0)
                 _Wait(wait);
         }
     }
-
+    void LogSimulationProgress()
+    {
+        if (timeSinceStart.Elapsed - lastWrite > 2 * writeStep)
+        {
+            nextWrite = timeSinceStart.Elapsed + writeStep;
+            _printer.F(ConsoleColor.Yellow);
+        }
+        else
+        {
+            nextWrite += writeStep;
+            _printer.W();
+        }
+        _printer.P($" {timeSinceStart.Elapsed.ToString(@"hh\:mm\:ss")} | ").P($"Zbývá {simulate} | ", 14, false);
+        for (int i = 0; i < 3; i++)
+        {
+            _printer.P(_playerNames[i], 1, true).P(':').P($" a {players[i].offense_wins},", 9, false).P($" o {players[i].defense_wins},", 9, false).P($" C {players[i].offense_wins + players[i].defense_wins} | ", 11, false);
+        }
+        _printer.NL().R();
+        lastWrite = timeSinceStart.Elapsed;
+    }
+    /// <summary>
+    /// Sets up the transition to the next step.
+    /// </summary>
     void Step(string status, int wait, Phase nextPhase, int nextStep)
     {
         phase = nextPhase;
@@ -160,12 +175,10 @@ public class Game
     {
         Step(status, wait);
     }
-
     void Step()
     {
         Step(0);
     }
-
     void Step(Phase nextPhase, int nextStep)
     {
         Step(status, 0, nextPhase, nextStep);

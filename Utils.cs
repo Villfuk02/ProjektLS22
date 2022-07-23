@@ -7,10 +7,16 @@ using System.Threading;
 
 namespace ProjektLS22
 {
+    /// <summary>
+    /// Contains utility functions used throughout the project.
+    /// </summary>
     public static class Utils
     {
 
         public static Random _rand = new Random();
+        /// <summary>
+        /// Randomly shuffles given list.
+        /// </summary>
         public static void _Shuffle<T>(this List<T> list)
         {
             int n = list.Count;
@@ -23,7 +29,10 @@ namespace ProjektLS22
                 list[n] = c;
             }
         }
-
+        /// <summary>
+        /// Stops the execution of this thread for a given time.
+        /// </summary>
+        /// <param name="time">time to wait in milliseconds</param>
         public static void _Wait(int time)
         {
             Thread thread = new Thread(delegate ()
@@ -35,7 +44,9 @@ namespace ProjektLS22
         }
 
         public static readonly string[] _playerNames = { "Jarda", "Franta", "Karel" };
-
+        /// <summary>
+        /// Sorts cards by suit and value, puts trumps in front.
+        /// </summary>
         public static void _SortCards(ref List<Card> cards, Suit? trumps)
         {
             cards.Sort(Comparer<Card>.Create((Card a, Card b) =>
@@ -52,15 +63,28 @@ namespace ProjektLS22
                 return a.Suit - b.Suit;
             }));
         }
+        /// <summary>
+        /// Returns if a card can be selected as trumps. Input given in a format common to all "Validators".
+        /// </summary>
         public static Func<Pile, Card, Card?, List<Card>, bool> _TrumpValidator = (_, _, _, _) => true;
+        /// <summary>
+        /// Returns if a card can be put in talon. Input given in a format common to all "Validators".
+        /// </summary>
         public static Func<Pile, Card, Card?, List<Card>, bool> _TalonValidator = (_, c, t, _) => _ValidTalon(c, t.Value);
+        /// <summary>
+        /// Returns if a card can be played. Input given in a format common to all "Validators".
+        /// </summary>
         public static Func<Pile, Card, Card?, List<Card>, bool> _PlayValidator = (h, c, trumps, trick) => _ValidPlay(h, c, trumps.Value.Suit, trick.ToArray(), trick.Count);
-
+        /// <summary>
+        /// Returns if a card can be put in talon.
+        /// </summary>
         public static bool _ValidTalon(Card selection, Card trumps)
         {
             return selection != trumps && !selection.Value.GivesPoints;
         }
-
+        /// <summary>
+        /// Returns if a card can be played.
+        /// </summary>
         public static bool _ValidPlay(Pile hand, Card selection, Suit trumps, Card[] trick, int trickCount)
         {
             if (trickCount == 0)
@@ -94,7 +118,9 @@ namespace ProjektLS22
                 return true;
             }
         }
-
+        /// <summary>
+        /// Returns the strongest card from up to the first two in a trick.
+        /// </summary>
         public static Card _BestFromFirstTwo(Suit trumps, Card[] trick, int trickCount)
         {
             Card first = trick[0];
@@ -113,12 +139,16 @@ namespace ProjektLS22
             }
             return first;
         }
-
+        /// <summary>
+        /// Decides which card is the strongest in a trick and returns its index.
+        /// </summary>
         public static int _TrickWinner(Card[] trick, Suit trumps)
         {
             return trick.Select((c, i) => (((c.Suit == trumps ? 20 : (trick[0].SameSuit(c) ? 10 : 0)) + c.Value), i)).Max().i;
         }
-
+        /// <summary>
+        /// Formats a collection of cards into a nice string for simpler debugging.
+        /// </summary>
         public static string _FormatCards(IEnumerable<Card> s, Suit? trumps)
         {
             List<Card> l = new List<Card>(s);
@@ -129,14 +159,18 @@ namespace ProjektLS22
             {
                 if (!lastSuit.HasValue || c.Suit != lastSuit.Value)
                 {
-                    lastSuit = c.Suit;
-                    sb.Append(' ');
+                    if (lastSuit.HasValue)
+                        sb.Append(' ');
                     sb.Append(c.Suit.Prefix);
+                    lastSuit = c.Suit;
                 }
                 sb.Append(c.Value.Symbol);
             }
             return sb.ToString();
         }
+        /// <summary>
+        /// Adds a number to a player index mod 3. For example player 0 is right after player 2.
+        /// </summary>
         public static Func<int, int, int> _PPlus = (a, i) => (a + i) % 3;
     }
 }

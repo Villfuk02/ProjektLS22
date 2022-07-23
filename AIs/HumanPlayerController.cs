@@ -5,6 +5,9 @@ using static ProjektLS22.Utils;
 
 namespace ProjektLS22
 {
+    /// <summary>
+    /// Lets the user control the player.
+    /// </summary>
     class HumanPlayerController : PlayerController
     {
         public static readonly string cardChoiceLetters = "QWERTASDFGHJ";

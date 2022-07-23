@@ -9,6 +9,9 @@ namespace ProjektLS22
             readonly Pile p0;
             readonly Pile p1;
             readonly Pile p2;
+            /// <summary>
+            /// Hack for indexing the Piles.
+            /// </summary>
             public Pile this[int i] => i == 0 ? p0 : (i == 1 ? p1 : p2);
             public PileTriple(Pile p0, Pile p1, Pile p2)
             {
@@ -16,6 +19,9 @@ namespace ProjektLS22
                 this.p1 = p1;
                 this.p2 = p2;
             }
+            /// <summary>
+            /// Copy a PiletTiple and update it by adding a card to the given Pile.
+            /// </summary>
             public PileTriple(PileTriple original, int pileToEdit, uint removeCardMask)
             {
                 p0 = original[0];
@@ -37,6 +43,9 @@ namespace ProjektLS22
                 }
             }
         }
+        /// <summary>
+        /// Generates all combinations given the hand sizes and valid card masks. Only stores two players and talon, because one player is always fixed.
+        /// </summary>
         static List<PileTriple> GetRawCombinations(int count1, int count2, Pile talon, in PileTriple masks, in Pile available)
         {
             List<PileTriple> combinations = new List<PileTriple>();
@@ -67,7 +76,9 @@ namespace ProjektLS22
             Generate(new PileTriple(new Pile(), new Pile(), talon), new int[] { count1, count2, 2 }, masks, available, 1);
             return combinations;
         }
-
+        /// <summary>
+        /// Generates all combinations of cards in player hands and talon, according to the constrains given. Then sequentailly returns them in random order.
+        /// </summary>
         public static IEnumerable<Pile[]> AllCombinationsRandomOrder(SinglePlayerPrediction[] models, int fixedPlayer, Pile hand, Pile? talonIfKnown, int startingPlayer, Pile valid)
         {
             Pile t = new Pile();
@@ -76,19 +87,7 @@ namespace ProjektLS22
                 t = talonIfKnown.Value;
                 valid = valid.Without(t);
             }
-            List<int> maxCards = new List<int>();
-            int remove = hand.Count * 2 - valid.Count + 3 + t.Count;
-            for (int i = 0; i < 3; i++)
-            {
-                maxCards.Add(hand.Count + 1);
-            }
-            int offset = startingPlayer;
-            while (remove > 0)
-            {
-                maxCards[offset]--;
-                remove--;
-                offset = _PPlus(offset, 1);
-            }
+            List<int> maxCards = CalculateHandSizes(hand, valid, t, startingPlayer);
             maxCards.RemoveAt(fixedPlayer);
             List<Pile> maskList = new List<Pile>();
             for (int i = 0; i < 3; i++)
@@ -105,6 +104,24 @@ namespace ProjektLS22
                 combinations[r] = combinations[i];
                 yield return Translate(p, fixedPlayer, hand);
             }
+        }
+
+        static List<int> CalculateHandSizes(Pile hand, Pile valid, Pile talon, int startingPlayer)
+        {
+            List<int> maxCards = new List<int>();
+            int remove = hand.Count * 2 - valid.Count + 3 + talon.Count;
+            for (int i = 0; i < 3; i++)
+            {
+                maxCards.Add(hand.Count + 1);
+            }
+            int offset = startingPlayer;
+            while (remove > 0)
+            {
+                maxCards[offset]--;
+                remove--;
+                offset = _PPlus(offset, 1);
+            }
+            return maxCards;
         }
 
         static Pile[] Translate(PileTriple combination, int fixedPlayer, Pile hand)

@@ -6,9 +6,15 @@ using static ProjektLS22.Utils;
 
 namespace ProjektLS22
 {
+    /// <summary>
+    /// Handles printing the main game screen in normal mode.
+    /// </summary>
     public class Renderer
     {
         public static readonly int WIDTH_PER_PLAYER = 16;
+        /// <summary>
+        /// Renders the given game state.
+        /// </summary>
         public static void RenderState(Game g)
         {
             _printer.CLR().R();
@@ -52,19 +58,19 @@ namespace ProjektLS22
                         {
                             _printer.C(upper, Hidden(g)).C(lower, Hidden(g)).NL(2);
                         }
-                        PrintPlayers(g, false);
+                        PrintPlayers(g);
                         break;
                     }
                 case Game.Phase.DEAL:
                     {
                         _printer.C(g.deck, Hidden(g)).NL(2);
-                        PrintPlayers(g, true);
+                        PrintPlayers(g);
                         break;
                     }
                 case Game.Phase.BEGIN:
                     {
                         _printer.NL(2);
-                        PrintPlayers(g, g.step <= 1);
+                        PrintPlayers(g);
                         if (g.players[g.activePlayer].controller.IsHuman)
                         {
                             if (g.step == 1)
@@ -82,7 +88,7 @@ namespace ProjektLS22
                     {
                         PrintTrick(g.trick, g.activePlayer);
                         _printer.NL();
-                        PrintPlayers(g, false);
+                        PrintPlayers(g);
                         if (g.step == 1)
                         {
                             PrintCardSelection(g, _PlayValidator);
@@ -93,13 +99,13 @@ namespace ProjektLS22
                     {
                         _printer.S(9).F(ConsoleColor.Green).P(g.status);
                         _printer.NL(2);
-                        PrintPlayers(g, false);
+                        PrintPlayers(g);
                         break;
                     }
                 case Game.Phase.COLLECT:
                     {
                         _printer.C(g.deck, Hidden(g)).NL(2);
-                        PrintPlayers(g, false);
+                        PrintPlayers(g);
                         break;
                     }
             }
@@ -109,12 +115,19 @@ namespace ProjektLS22
                 g.players[g.activePlayer].controller.GetOptions(g.phase, g.step, g.trumps, new List<Card>(g.trick));
             }
         }
-
+        /// <summary>
+        /// Determines if cards should be visible when they should be hidden to the user.
+        /// They should only be visible when all cards are visible.
+        /// See also <seealso cref="Game.CardShowing"/>
+        /// </summary>
         static bool Hidden(Game g)
         {
             return g.cardShowing == Game.CardShowing.ALL;
         }
-
+        /// <summary>
+        /// Determines if a given player's cards should be visible to the user.
+        /// See also <seealso cref="Game.CardShowing"/>
+        /// </summary>
         static bool ShowHand(Game g, int player)
         {
             if (g.cardShowing == Game.CardShowing.ALL)
@@ -125,8 +138,10 @@ namespace ProjektLS22
                 return g.players[player].controller.IsHuman && player == g.activePlayer && g.waitingForPlayer;
             return false;
         }
-
-        static void PrintPlayers(Game g, bool seven)
+        /// <summary>
+        /// Prints player names, info and hands.
+        /// </summary>
+        static void PrintPlayers(Game g)
         {
             for (int i = 0; i < 3; i++)
             {
@@ -168,7 +183,9 @@ namespace ProjektLS22
             }
             _printer.NL();
         }
-
+        /// <summary>
+        /// Prints the amount of tricks won and marriages padded to take up the space given.
+        /// </summary>
         public static void PrintDiscard(int space, int tricks, List<Card> marriages)
         {
             _printer.S(space - marriages.Count - 1).C(marriages, true);
@@ -181,7 +198,9 @@ namespace ProjektLS22
                 _printer.S(1);
             }
         }
-
+        /// <summary>
+        /// Prints the card selection keys under the cards that can be selcted.
+        /// </summary>
         public static void PrintCardSelection(Game g, Func<Pile, Card, Card?, List<Card>, bool> validator)
         {
             _printer.S(1);
@@ -210,7 +229,9 @@ namespace ProjektLS22
                 }
             }
         }
-
+        /// <summary>
+        /// Prints the current trick.
+        /// </summary>
         public static void PrintTrick(List<Card> trick, int activePlayer)
         {
             Card?[] playerCards = new Card?[3];
@@ -228,6 +249,9 @@ namespace ProjektLS22
             }
             _printer.NL();
         }
+        /// <summary>
+        /// Prints the keys of cards that can be selected. Used in <see cref="HumanPlayerController"/>.
+        /// </summary>
         public static void PrintValidChoices(Pile hand, Card? trumps, List<Card> trick, Func<Pile, Card, Card?, List<Card>, bool> validator)
         {
             _printer.H();

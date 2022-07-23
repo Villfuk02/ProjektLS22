@@ -45,6 +45,9 @@ namespace ProjektLS22
         public virtual void FirstTrickStart(Card trumps, bool fromPeople, int offense, Pile? talonIfKnown) { }
         public virtual void PlaysCard(int p, Card c, List<Card> trick, Card trumps, bool marriage) { }
         public virtual void TakesTrick(int p, List<Card> trick) { }
+        /// <summary>
+        /// Choose trumps. Return null to choose from the people.
+        /// </summary>
         public abstract Card? ChooseTrumps();
         public abstract Card ChooseTalon(Card trumps, Pile talon);
         public abstract Card ChoosePlay(List<Card> trick, Card trumps);

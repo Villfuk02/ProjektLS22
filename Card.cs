@@ -104,7 +104,9 @@ public readonly struct Value
     public static implicit operator int(Value v) => v.num;
     public static implicit operator Pile(Value v) => v.Mask;
 }
-
+/// <summary>
+/// An unordered set of cards, internally represented by a 32bit mask.
+/// </summary>
 public readonly struct Pile
 {
     public static Pile FULL = new Pile(0xFFFFFFFF);

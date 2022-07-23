@@ -63,14 +63,11 @@ namespace ProjektLS22
                 return b;
             }
         }
-
+        /// <summary>
+        /// Get the best card to play.
+        /// </summary>
         static Card GetBestPlay(int p, Card trumps, Pile hand, List<Card> trick, SinglePlayerPrediction[] predictedHands, int startingPlayer, int offense, int[] pts, Pile? talonIfKnown, Pile valid, Card preference, int maxCombinations)
         {
-            // _printer.NL();
-            // for (int i = 0; i < 3; i++)
-            // {
-            //     _printer.P(pts[i], 7);
-            // }
             List<Card> playable = new List<Card>();
             foreach (Card c in hand.Enumerate())
             {
@@ -90,34 +87,18 @@ namespace ProjektLS22
                     if (w[i])
                         wins[i]++;
                 }
-                // if (!w.All(e => e == w[0]))
-                // {
-                // if (cases > 0)
-                // {
-                //     _printer.NL();
-                //     for (int i = 0; i < 4; i++)
-                //     {
-                //         Renderer.PrintHand(combination[i], true, false);
-                //         _printer.S(3);
-                //     }
-                // }
-                //     _printer.NL();
-                //     for (int i = 0; i < playable.Count; i++)
-                //     {
-                //         _printer.S(3).P(w[i] ? 'W' : 'L');
-                //     }
-                // }
             }
-            // _printer.NL();
             for (int i = 0; i < playable.Count; i++)
             {
-                // _printer.P(wins[i], 8);
                 wins[i] *= 2;
                 if (playable[i] == preference)
                     wins[i]++;
             }
             return playable[wins.AsSpan().IndexOf(wins.Max())];
         }
+        /// <summary>
+        /// Which cards win the game given the combination.
+        /// </summary>
         static bool[] GetWinsForCombination(int p, Card trumps, Pile[] combination, List<Card> trick, int offense, int[] pts, List<Card> playable)
         {
             GameState g = new GameState(combination, trick, pts, p);
@@ -130,7 +111,9 @@ namespace ProjektLS22
             }
             return wins;
         }
-
+        /// <summary>
+        /// Can the player whose turn it is win from this game state.
+        /// </summary>
         static bool CanWin(GameState g, in Card trumps, int offense)
         {
             if (g.playerHands[g.player].IsEmpty)
@@ -172,7 +155,9 @@ namespace ProjektLS22
                 }
                 player = p;
             }
-
+            /// <summary>
+            /// Copy the game state and update it by playing the selected card.
+            /// </summary>
             public GameState(GameState g, Card cardToPlay, Suit trumps)
             {
                 playerHands = new CombinationGenerator.PileTriple(g.playerHands, g.player, (Pile)cardToPlay);

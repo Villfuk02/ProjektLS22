@@ -39,7 +39,7 @@ namespace ProjektLS22
                 if (maxSuit.Value == c.Suit)
                     return c;
             }
-            //WILL NEVER HAPPEN
+            //this will never happen
             return null;
         }
 
@@ -112,7 +112,7 @@ namespace ProjektLS22
         int RateFirstCardOffense(Card c, List<Card> trick, Suit trumps)
         {
             int rating = 0;
-            //X - A risk -1M
+            //X -> A risk -1M
             if (c.Value == Value.TEN)
             {
                 if (others.ToPile().HasAny(new Card(c.Suit, Value.ACE)))
@@ -120,7 +120,7 @@ namespace ProjektLS22
                     rating -= 1_000_000;
                 }
             }
-            //A/X - trump risk -500K*expected
+            //A/X -> trump risk -500K*expected
             float[] trumpedChances = new float[3];
             OtherPlayersSuitInfo suitInfo = GetOtherPlayersSuitInfo(c.Suit);
             if (c.Suit != trumps && others.ToPile().HasAny(trumps))
@@ -135,7 +135,7 @@ namespace ProjektLS22
             {
                 rating -= (int)(500_000 * (trumpedChances[1] + trumpedChances[2]));
             }
-            //A - X force take +20K*chance
+            //A -> force out X and take it +20K*chance
             if (c.Value == Value.ACE)
             {
                 if (others.ToPile().HasAny(new Card(c.Suit, Value.TEN)))
@@ -170,10 +170,10 @@ namespace ProjektLS22
                     rating += (int)(20_000 * expected);
                 }
             }
-            //trump - -5K
+            //trump -> -5K
             if (c.Suit == trumps)
                 rating -= 5_000;
-            //any - trump pull +1K*expected
+            //any -> force out trumps +1K*expected
             if (c.Suit == trumps)
             {
                 rating += (int)(1_000 * (2 - suitInfo.noneChance[1] - suitInfo.noneChance[2]));
@@ -188,7 +188,7 @@ namespace ProjektLS22
         int RateFirstCardFirstDefense(Card c, List<Card> trick, Suit trumps)
         {
             int rating = 0;
-            //-10K if enemy could steal X or A
+            //enemy could steal X or A -> -10K
             if (c.Value.GivesPoints)
             {
                 if (prevPlayer.ToPile().HasAny(new Card(c.Suit, Value.ACE))
@@ -198,10 +198,10 @@ namespace ProjektLS22
                     rating -= 10_000;
                 }
             }
-            //relative harm
+            //force out trumps  (expected from enemy - expected from ally) * 1K
             OtherPlayersSuitInfo suitInfo = GetOtherPlayersSuitInfo(c.Suit);
             rating += (int)(1000 * (suitInfo.noneChance[2] - suitInfo.noneChance[1]));
-            //trump - -5K
+            //trump -> -5K
             if (c.Suit == trumps)
                 rating -= 5_000;
             return rating;
@@ -214,7 +214,7 @@ namespace ProjektLS22
             OtherPlayersSuitInfo trumpInfo = GetOtherPlayersSuitInfo(trumps);
             Pile guaranteed = ((Pile)others).Without(prevPlayer);
             Pile possible = ((Pile)nextPlayer).Without(guaranteed);
-            //-10K if enemy could steal X or A
+            //enemy could steal X or A -> -10K
             if (c.Value.GivesPoints)
             {
                 if (possible.HasAny(new Card(c.Suit, Value.ACE)) || (c.Suit != trumps && trumpInfo.max[1] > 0 && trumpInfo.min[1] <= 0))
@@ -262,10 +262,10 @@ namespace ProjektLS22
                 }
             }
 
-            //1K * relative harm
+            //force out trumps  (expected from enemy - expected from ally) * 1K
             rating += (int)(1000 * (suitInfo.noneChance[1] - suitInfo.noneChance[2]));
 
-            //trump - -5K
+            //trump -> -5K
             if (c.Suit == trumps)
                 rating -= 5_000;
             return rating;
@@ -344,7 +344,7 @@ namespace ProjektLS22
             }
             rating += (int)(100 * (2 * myWinChance - 1) * (pts + 1));
 
-            //penalty for playing A when X is not secured
+            //penalty for playing A when X is not secured -> -1K
             if (c.Value == Value.ACE && others.ToPile().HasAny(new Card(c.Suit, Value.TEN)))
             {
                 rating -= 1000;
@@ -361,23 +361,29 @@ namespace ProjektLS22
             int winner = _TrickWinner(updatedTrick.ToArray(), trumps);
             if (winner == 2 || (!isOffense && (winner == (isFirstDefense ? 0 : 1))))
             {
+                //secure X when we're winning the trick
+                //+100K when there's A still around
                 if (c.Value == Value.TEN && others.ToPile().HasAny(new Card(c.Suit, Value.ACE)))
                 {
                     rating += 100_000;
                 }
+                //+10K * number of trump difference between us and others
                 else if (c.Value.GivesPoints && c.Suit != trumps)
                 {
                     rating += 10_000 * (others.ToPile().Where(trumps).Count - us.ToPile().Where(trumps).Count);
                 }
             }
+            //X or A if enemy is winning the trick -> -1M
             else if (c.Value.GivesPoints)
             {
                 rating -= 1_000_000;
             }
+            //punish suits where I still have X or A -> -1K + 100 per card of given suit as buffer
             if (me.ToPile().HasAny(Value.GivesPointsMask.Where(c.Suit)))
             {
                 rating += 100 * (me.ToPile().Where(c.Suit).Count) - 1_000;
             }
+            //try to get rid of suits where I don't have X or A, starting with the one with fewest cards
             else
             {
                 rating += 1_000 - 100 * (me.ToPile().Where(c.Suit).Count);

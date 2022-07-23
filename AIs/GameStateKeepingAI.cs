@@ -9,6 +9,9 @@ using static ProjektLS22.Utils;
 
 namespace ProjektLS22
 {
+    /// <summary>
+    /// Just keeps track of what cars can which player have.
+    /// </summary>
     public abstract class GameStateKeepingAI : PlayerController
     {
         protected SinglePlayerPrediction[] players = new SinglePlayerPrediction[3];
