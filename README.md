@@ -22,10 +22,10 @@ Možnosti v menu:
   - RandomAI - vždy zahraje náhodou kartu z těch které mu pravidla dovolují.
   - SmartAI - rozhoduje se velmi chytře na základě složitého algoritmu.
   - HybridAI - první 4 kola hraje jako SmartAI, zbylých 6 odsimuluje, a použije strategii, která mu dá nejvyšší šanci na výhru.
-  - Sim-10K - simuluje prakticky celou hru, ale vždy prohledává jen 10 tisíc možností.
-  - Sim-100K - simuluje prakticky celou hru, ale vždy prohledává jen 100 tisíc možností. Rozhodování může zabrat vteřiny.
-  - Sim-1M - simuluje prakticky celou hru, ale vždy prohledává jen 1 milion možností. Rozhodování může zabrat desítky vteřin.
-  - Sim-Full - simuluje celou hru. Rozhodování může zabrat minuty.
+  - Sim-10K - simuluje prakticky celou hru, ale vždy prohledává jen 10 tisíc kombinací rozdání karet.
+  - Sim-100K - simuluje prakticky celou hru, ale vždy prohledává jen 100 tisíc kombinací rozdání karet. Rozhodování může zabrat vteřiny.
+  - Sim-1M - simuluje prakticky celou hru, ale vždy prohledává jen 1 milion kombinací rozdání karet. Rozhodování může zabrat vteřiny.
+  - Sim-Full - simuluje celou hru. Rozhodování může desítky vteřin.
 - Pravidla - zobrazí pravidla. Silně doporučeno novým uživatelům.
 - Mód
   - normální - hra probíhá normálně s grafickým zobrazením.
@@ -129,6 +129,22 @@ při hodnocení karet počítá pravděpodobnosti výskytu různých úkazů. V�
 
 Podle informací o tom, které karty můžou ostatní hráči mít, vygeneruje všechny kombinace, jak by mohly karty být rozdané. Poté vybere několik až všecny tyto permutace a u každé minmaxem odsimuluje, jestli může vyhrát po zahrátí každé z karet. Karta, která má nejvíc potenciálních výher je vybrána. V případě remízy se rozhodne jako SmartAI.
 
-Toto je extrémně pomalé, protože kombinací rozdání karet může být vyzkoušeno až 19 399 380, a navíc strom sumulace se extrémně rychle větví. Například první hráč může zahrát libovolnou z 10 karet, druhý třeba jednu z 5 a třetí třeba taky, potom další hrač libovolnou z 9 a tak dále. Takže hra může probíhat ***x*** různými způsoby, kde 10! < ***x*** <(10!)^2.
+Toto je extrémně pomalé, protože kombinací rozdání karet může být vyzkoušeno až 19 399 380, a navíc strom sumulace se extrémně rychle větví. Například první hráč může zahrát libovolnou z 10 karet, druhý třeba jednu z 5 a třetí třeba taky, potom další hrač libovolnou z 9 a tak dále. Takže hra může probíhat ***x*** různými způsoby, kde 10! < ***x*** < (10!)^3.
 
-### Benchmarks
+Většinou SimAI stejně dojde k tomu, že prohraje ať zahraje cokoli nebo že vyhraje ať zahraje cokoli, takže se často rozhodnutí určuje podle SmartAI.V opačném případě často volí možnost, kterou by SmartAI nezvolilo.
+
+### Testy
+
+Každé AI jsem otestoval odehráním 10 000 her proti dvěma SmartAI. Některé testy jsem pustil vícekrát a výsledky zprůměroval:
+
+| AI       | Výher | Čas     | Počet testů |
+|----------|-------|---------|-------------|
+| RandomAI | 3783  | 1s      | 10          |
+| SmartAI  | 5013  | 1s      | 10          |
+| HybridAI | 4990  | 1:07    | 10          |
+| Sim-10K  | 5004  | 6:35    | 5           |
+| Sim-100K | 4994  | 15:45   | 3           |
+| Sim-1M   | 5017  | 44:47   | 1           |
+| Sim-Full | 5035  | 3:04:39 | 1           |
+
+Výsledky nabádají k tvzení, že všechny AI (kromě RandomAI) jsou stejně dobré. U většiny testů byla odchylka +- 100 výher.
